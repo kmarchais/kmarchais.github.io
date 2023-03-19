@@ -20,7 +20,7 @@ const TPMS = ({ isMobile }) => {
         castShadow
         shadow-mapSize={1024}
       /> */}
-      {/* <ambientLight intensity={0.5} color="white" /> */}
+      <ambientLight intensity={0.5} color="white" />
       <primitive object={tpms.scene} scale={1.5} position={[0, -0.6, 0]} />
     </mesh>
   );
@@ -48,7 +48,7 @@ const TPMSCanvas = () => {
   return (
     <Canvas
       frameloop="demand"
-      camera={{ position: [0, 0, 0], fov: 25 }}
+      camera={{ position: [10, 10, 10], fov: 25 }}
       gl={{ preserveDrawingBuffer: true }}
     >
       <Suspense fallback={<CanvasLoader />}>
