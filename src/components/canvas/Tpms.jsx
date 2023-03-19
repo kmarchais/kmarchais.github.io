@@ -10,8 +10,8 @@ const TPMS = ({ isMobile }) => {
 
   return (
     <mesh>
-      {/* <hemisphereLight intensity={0.15} groundColor="black" /> */}
-      {/* <pointLight intensity={0.5} />
+      <hemisphereLight intensity={0.15} groundColor="black" />
+      <pointLight intensity={0.5} />
       <spotLight
         position={[-20, 50, 10]}
         angle={0.12}
@@ -19,8 +19,7 @@ const TPMS = ({ isMobile }) => {
         intensity={1}
         castShadow
         shadow-mapSize={1024}
-      /> */}
-      <ambientLight intensity={0.5} color="white" />
+      />
       <primitive object={tpms.scene} scale={1.5} position={[0, -0.6, 0]} />
     </mesh>
   );
@@ -48,6 +47,7 @@ const TPMSCanvas = () => {
   return (
     <Canvas
       frameloop="demand"
+      shadows
       camera={{ position: [10, 10, 10], fov: 25 }}
       gl={{ preserveDrawingBuffer: true }}
     >
