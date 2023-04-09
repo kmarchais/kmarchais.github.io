@@ -4704,7 +4704,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     float l = 0.0;
 
     //float thickness = 0.25 * (1.0 - abs(vUv.y - 0.5));
-    float thickness = -5.0 * vUv.y * (vUv.y - 1.0);
+    float thickness = -5.0 * (vUv.y - 0.05) * (vUv.y - 0.88);
 
     if(abs(d) < thickness){l=1.0;};
 
