@@ -1,9 +1,16 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom"
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 
-import { Collisions, Example, Home, NBody, Particles, Vtk } from './components'
+import {
+  Collisions,
+  Example,
+  Home,
+  NBody,
+  Particles,
+  Shader,
+  Vtk,
+} from "./components";
 
 const App = () => {
-
   return (
     <BrowserRouter>
       <Routes>
@@ -13,9 +20,10 @@ const App = () => {
         <Route path="/Vtk" element={<Vtk />} />
         <Route path="/Example" element={<Example />} />
         <Route path="/Collisions" element={<Collisions />} />
+        <Route path="/Shader" element={<Shader />} />
       </Routes>
     </BrowserRouter>
-  )
-}
+  );
+};
 
-export default App
+export default App;

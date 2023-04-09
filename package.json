@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "predeploy": "npm run build",
+    "predeploy": "vite build",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
@@ -26,6 +26,7 @@
     "framer-motion": "^10.2.3",
     "gh-pages": "^5.0.0",
     "install": "^0.13.0",
+    "lamina": "^1.1.23",
     "leva": "^0.9.34",
     "maath": "^0.5.2",
     "nice-color-palettes": "^3.0.0",

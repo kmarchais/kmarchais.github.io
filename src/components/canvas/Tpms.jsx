@@ -48,15 +48,11 @@ const TPMSCanvas = () => {
     <Canvas
       frameloop="demand"
       shadows
-      camera={{ position: [10, 10, 10], fov: 25 }}
+      camera={{ position: [7, 7, 7], fov: 25 }}
       gl={{ preserveDrawingBuffer: true }}
     >
       <Suspense fallback={<CanvasLoader />}>
-        <OrbitControls
-          enableZoom={false}
-          maxPolarAngle={Math.PI}
-          minPolarAngle={0}
-        />
+        <OrbitControls enableZoom={false} />
         <TPMS isMobile={isMobile} />
       </Suspense>
 

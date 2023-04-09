@@ -6,7 +6,7 @@ import Feedbacks from './Feedbacks';
 import Hero from './Hero';
 import Home from './Home';
 import Navbar from './Navbar';
-import { Collisions, Example, NBody, Particles, Vtk } from './projects';
+import { Collisions, Example, NBody, Particles, Shader, Vtk } from './projects';
 import Tech from './Tech';
 import Works from './Works';
 
@@ -27,4 +27,5 @@ export {
   Vtk,
   Example,
   Collisions,
+  Shader
 };
