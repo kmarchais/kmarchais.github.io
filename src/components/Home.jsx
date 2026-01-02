@@ -1,4 +1,4 @@
-import { About, Contact, Experience, Hero, Navbar, Tech, Works } from "./";
+import { About, Contact, Hero, Navbar, Tech, Works } from "./";
 
 import { Html } from "@react-three/drei";
 import GradientBackground from "./canvas/GradientBackground";
@@ -16,7 +16,6 @@ const Home = () => {
         </div>
       </div>
       <About />
-      <Experience />
       <Tech />
       <Works />
       <Contact />
