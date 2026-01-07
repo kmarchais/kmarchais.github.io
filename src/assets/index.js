@@ -26,6 +26,7 @@ import safran from "./company/safran.png";
 import survitec from "./company/survitec.png";
 
 import microgen from "./gyroid.gif";
+import mmgpy from "./mmgpy.png";
 import phd from "./PhD3Dprinting.png";
 import website from "./website.png";
 
@@ -51,6 +52,7 @@ export {
   unreal,
   phd,
   microgen,
+  mmgpy,
   website,
   survitec, ariane, safran, i2m, hivelix
 };

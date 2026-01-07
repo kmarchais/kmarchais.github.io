@@ -8,6 +8,7 @@ import {
     github_logo,
     linux,
     microgen,
+    mmgpy,
     mobile,
     pdf,
     phd,
@@ -136,6 +137,28 @@ const projects = [
         ],
         image: microgen,
         source_code_link: "https://github.com/3MAH/microgen",
+        link_logo: github
+    },
+    {
+        name: "mmgpy",
+        description:
+            "Python bindings for the MMG remeshing library to generate, optimize, and refine 2D, 3D, and surface meshes with PyVista integration.",
+        tags: [
+            {
+                name: "Meshing",
+                color: "blue-text-gradient",
+            },
+            {
+                name: "OpenSource",
+                color: "green-text-gradient",
+            },
+            {
+                name: "Python",
+                color: "pink-text-gradient",
+            },
+        ],
+        image: mmgpy,
+        source_code_link: "https://github.com/kmarchais/mmgpy",
         link_logo: github
     },
     {

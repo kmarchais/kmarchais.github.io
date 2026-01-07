@@ -1,5 +1,5 @@
 import BallCanvas from "./Ball";
-import TPMSCanvas from "./TPMS";
+import TPMSCanvas from "./Tpms";
 
 export { TPMSCanvas, BallCanvas };
 
