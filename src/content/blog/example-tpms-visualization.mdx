@@ -1,0 +1,61 @@
+export const frontmatter = {
+  title: "Understanding Triply Periodic Minimal Surfaces",
+  date: "2026-01-08",
+  excerpt: "An introduction to TPMS geometry and how to visualize them using ray marching techniques.",
+  tags: ["simulation", "visualization", "glsl"]
+};
+
+Triply Periodic Minimal Surfaces (TPMS) are fascinating mathematical structures that repeat infinitely in three dimensions. They have zero mean curvature everywhere, making them minimal surfaces.
+
+## The Gyroid Equation
+
+The most famous TPMS is the **Gyroid**, discovered by Alan Schoen in 1970. Its implicit equation is:
+
+$$
+\sin(x)\cos(y) + \sin(y)\cos(z) + \sin(z)\cos(x) = 0
+$$
+
+This elegant formula produces a surface that divides space into two intertwined, congruent labyrinths.
+
+## Implementation in Python
+
+Here's how you might evaluate the gyroid function:
+
+```python
+import numpy as np
+
+def gyroid(x, y, z, frequency=1.0):
+    """Evaluate the gyroid implicit surface."""
+    x, y, z = x * frequency, y * frequency, z * frequency
+    return (
+        np.sin(x) * np.cos(y) +
+        np.sin(y) * np.cos(z) +
+        np.sin(z) * np.cos(x)
+    )
+```
+
+## Ray Marching for Visualization
+
+To render TPMS in real-time, we use **ray marching** - a technique that steps along rays from the camera and evaluates the implicit function at each point.
+
+The basic algorithm:
+
+1. Cast a ray from camera through each pixel
+2. Step along the ray in small increments
+3. Evaluate the TPMS function at each point
+4. When the sign changes, we've crossed the surface
+5. Refine the intersection point and compute normals
+
+## Applications
+
+TPMS have numerous practical applications:
+
+- **Additive manufacturing** - Lightweight structures with high strength-to-weight ratios
+- **Tissue engineering** - Scaffolds for cell growth
+- **Heat exchangers** - Maximizing surface area for heat transfer
+- **Acoustic materials** - Sound absorption and diffusion
+
+## Further Reading
+
+- Schoen, A. H. (1970). "Infinite periodic minimal surfaces without self-intersections"
+- The [Microgen](https://github.com/3MAH/microgen) project for generating TPMS lattices

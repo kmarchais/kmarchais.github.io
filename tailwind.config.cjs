@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./src/**/*.{js,jsx}"],
+  content: ["./src/**/*.{js,jsx,mdx}"],
   mode: "jit",
   theme: {
     extend: {
@@ -21,7 +21,32 @@ module.exports = {
       backgroundImage: {
         "hero-pattern": "url('/src/assets/herobg.png')",
       },
+      typography: (theme) => ({
+        DEFAULT: {
+          css: {
+            color: theme('colors.tertiary'),
+            a: {
+              color: theme('colors.secondary'),
+              '&:hover': {
+                color: theme('colors.tertiary'),
+              },
+            },
+            h1: { color: theme('colors.white') },
+            h2: { color: theme('colors.white') },
+            h3: { color: theme('colors.white') },
+            h4: { color: theme('colors.white') },
+            strong: { color: theme('colors.white') },
+            code: { color: theme('colors.tertiary') },
+            blockquote: {
+              color: theme('colors.tertiary'),
+              borderLeftColor: theme('colors.secondary'),
+            },
+          },
+        },
+      }),
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 };

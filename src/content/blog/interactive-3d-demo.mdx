@@ -1,0 +1,143 @@
+export const frontmatter = {
+  title: "Interactive 3D Visualizations in the Browser",
+  date: "2026-01-08",
+  excerpt: "Demonstrating how to embed interactive Three.js scenes directly in blog posts using React Three Fiber.",
+  tags: ["threejs", "r3f", "visualization", "webgl"]
+};
+
+import { Canvas, useFrame } from '@react-three/fiber'
+import { OrbitControls, MeshDistortMaterial, Environment, Float } from '@react-three/drei'
+import { useRef, useState } from 'react'
+
+export const SpinningSphere = ({ color = "#778da9", speed = 1, distort = 0.3 }) => {
+  const meshRef = useRef()
+  useFrame((state) => {
+    meshRef.current.rotation.x = state.clock.elapsedTime * speed * 0.5
+    meshRef.current.rotation.y = state.clock.elapsedTime * speed
+  })
+  return (
+    <mesh ref={meshRef}>
+      <icosahedronGeometry args={[1, 4]} />
+      <MeshDistortMaterial color={color} speed={2} distort={distort} />
+    </mesh>
+  )
+}
+
+export const InteractiveBox = () => {
+  const [hovered, setHovered] = useState(false)
+  const [clicked, setClicked] = useState(false)
+  const meshRef = useRef()
+  useFrame((state) => {
+    meshRef.current.rotation.x += 0.01
+    meshRef.current.rotation.y += 0.01
+  })
+  return (
+    <mesh
+      ref={meshRef}
+      scale={clicked ? 1.5 : 1}
+      onClick={() => setClicked(!clicked)}
+      onPointerOver={() => setHovered(true)}
+      onPointerOut={() => setHovered(false)}
+    >
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color={hovered ? '#e0e1dd' : '#415A77'} />
+    </mesh>
+  )
+}
+
+One of the powerful features of modern web development is the ability to create interactive 3D visualizations that run directly in the browser. Using **React Three Fiber** (R3F), we can seamlessly integrate Three.js scenes into React applications.
+
+## Basic Animated Scene
+
+Here's a distorted sphere with automatic rotation. You can **drag to orbit** around it:
+
+<div className="h-[400px] my-8 rounded-lg overflow-hidden bg-black-100">
+  <Canvas camera={{ position: [0, 0, 4], fov: 45 }}>
+    <ambientLight intensity={0.5} />
+    <pointLight position={[10, 10, 10]} intensity={1} />
+    <SpinningSphere />
+    <OrbitControls enableZoom={false} />
+  </Canvas>
+</div>
+
+The code for this component is straightforward:
+
+```jsx
+const SpinningSphere = ({ color, speed, distort }) => {
+  const meshRef = useRef()
+  useFrame((state) => {
+    meshRef.current.rotation.y = state.clock.elapsedTime * speed
+  })
+  return (
+    <mesh ref={meshRef}>
+      <icosahedronGeometry args={[1, 4]} />
+      <MeshDistortMaterial color={color} distort={distort} />
+    </mesh>
+  )
+}
+```
+
+## Interactive Elements
+
+3D scenes can respond to user input. **Click the box** below to scale it, and **hover** to change its color:
+
+<div className="h-[350px] my-8 rounded-lg overflow-hidden bg-black-100">
+  <Canvas camera={{ position: [0, 0, 4], fov: 45 }}>
+    <ambientLight intensity={0.5} />
+    <pointLight position={[10, 10, 10]} intensity={1} />
+    <InteractiveBox />
+    <OrbitControls enableZoom={false} />
+  </Canvas>
+</div>
+
+## Floating Objects with Physics-like Animation
+
+Using the `Float` component from drei, we can create objects with smooth, organic movement:
+
+<div className="h-[400px] my-8 rounded-lg overflow-hidden bg-black-100">
+  <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
+    <ambientLight intensity={0.3} />
+    <pointLight position={[10, 10, 10]} intensity={1} />
+    <pointLight position={[-10, -10, -10]} intensity={0.5} color="#778da9" />
+    <Float speed={2} rotationIntensity={1} floatIntensity={2}>
+      <mesh position={[-2, 0, 0]}>
+        <torusGeometry args={[0.8, 0.3, 16, 32]} />
+        <meshStandardMaterial color="#778da9" metalness={0.8} roughness={0.2} />
+      </mesh>
+    </Float>
+    <Float speed={1.5} rotationIntensity={2} floatIntensity={1}>
+      <mesh position={[0, 0, 0]}>
+        <octahedronGeometry args={[1]} />
+        <meshStandardMaterial color="#415A77" metalness={0.5} roughness={0.3} />
+      </mesh>
+    </Float>
+    <Float speed={3} rotationIntensity={0.5} floatIntensity={3}>
+      <mesh position={[2, 0, 0]}>
+        <dodecahedronGeometry args={[0.8]} />
+        <meshStandardMaterial color="#e0e1dd" metalness={0.3} roughness={0.5} />
+      </mesh>
+    </Float>
+    <OrbitControls enableZoom={false} />
+  </Canvas>
+</div>
+
+## Why This Matters
+
+Interactive visualizations are particularly valuable for:
+
+- **Scientific communication** - Showing complex 3D structures that static images can't capture
+- **Education** - Letting users explore concepts hands-on
+- **Data visualization** - Making high-dimensional data explorable
+- **Simulation results** - Presenting particle simulations, flow fields, or deformation
+
+The barrier between "reading about" and "experiencing" a concept disappears when you can interact with it directly.
+
+## Technical Notes
+
+These visualizations use:
+
+- **React Three Fiber** - React renderer for Three.js
+- **@react-three/drei** - Useful helpers (OrbitControls, Float, MeshDistortMaterial)
+- **MDX** - Markdown with JSX support for embedding components
+
+All rendering happens on the GPU via WebGL, ensuring smooth performance even on modest hardware.

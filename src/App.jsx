@@ -11,11 +11,15 @@ import {
   Vtk,
 } from "./components";
 
+import { Blog, BlogPostPage } from "./pages";
+
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<BlogPostPage />} />
         <Route path="/NBody" element={<NBody />} />
         <Route path="/Particles" element={<Particles />} />
         <Route path="/TPMS" element={<TPMS />} />
