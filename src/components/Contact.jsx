@@ -24,30 +24,34 @@ const Contact = () => {
         <a
           href="https://www.linkedin.com/in/kevin-marchais/"
           title="LinkedIn"
+          aria-label="Visit my LinkedIn profile"
           className="hover:text-[#555]"
         >
-          <FontAwesomeIcon icon={faLinkedin} />
+          <FontAwesomeIcon icon={faLinkedin} aria-hidden="true" />
         </a>
         <a
           href="https://twitter.com/kmarchais_"
           title="Twitter"
+          aria-label="Visit my Twitter profile"
           className="hover:text-[#555]"
         >
-          <FontAwesomeIcon icon={faTwitter} />
+          <FontAwesomeIcon icon={faTwitter} aria-hidden="true" />
         </a>
         <a
           href="https://github.com/kmarchais"
           title="GitHub"
+          aria-label="Visit my GitHub profile"
           className="hover:text-[#555]"
         >
-          <FontAwesomeIcon icon={faGithub} />
+          <FontAwesomeIcon icon={faGithub} aria-hidden="true" />
         </a>
         <a
           href="https://gitlab.com/kmarchais"
           title="GitLab"
+          aria-label="Visit my GitLab profile"
           className="hover:text-[#555]"
         >
-          <FontAwesomeIcon icon={faGitlab} />
+          <FontAwesomeIcon icon={faGitlab} aria-hidden="true" />
         </a>
       </div>
     </>

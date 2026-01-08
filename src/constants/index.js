@@ -180,7 +180,7 @@ const projects = [
             },
         ],
         image: website,
-        source_code_link: "https://github.com/",
+        source_code_link: "https://github.com/kmarchais/kmarchais.github.io",
         link_logo: github
     },
 ];
