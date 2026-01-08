@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import {
+  Chess,
   Collisions,
   Example,
   HomeNew,
@@ -27,6 +28,7 @@ const App = () => {
         <Route path="/Example" element={<Example />} />
         <Route path="/Collisions" element={<Collisions />} />
         <Route path="/Shader" element={<Shader />} />
+        <Route path="/Chess" element={<Chess />} />
       </Routes>
     </BrowserRouter>
   );

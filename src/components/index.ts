@@ -5,7 +5,7 @@ import Hero from './Hero';
 import Home from './Home';
 import HomeNew from './HomeNew';
 import Navbar from './Navbar';
-import { Collisions, Example, NBody, Particles, Shader, TPMS, Vtk } from './projects';
+import { Chess, Collisions, Example, NBody, Particles, Shader, TPMS, Vtk } from './projects';
 import Tech from './Tech';
 import Works from './Works';
 
@@ -21,6 +21,7 @@ export {
   MorphingTPMS,
   Home,
   HomeNew,
+  Chess,
   NBody,
   Particles,
   TPMS,
