@@ -571,9 +571,9 @@ const ComputationalGeometry = () => {
   const [latticeNodeRadius, setLatticeNodeRadius] = useState(0.06);
   const [latticeNodeSmoothing, setLatticeNodeSmoothing] = useState(0.02);
   const [latticeCellSize, setLatticeCellSize] = useState(1.0);
-  const [latticeRepeatX, setLatticeRepeatX] = useState(3);
-  const [latticeRepeatY, setLatticeRepeatY] = useState(3);
-  const [latticeRepeatZ, setLatticeRepeatZ] = useState(3);
+  const [latticeRepeatX, setLatticeRepeatX] = useState(1);
+  const [latticeRepeatY, setLatticeRepeatY] = useState(1);
+  const [latticeRepeatZ, setLatticeRepeatZ] = useState(1);
   const [latticeColormap, setLatticeColormap] = useState('Viridis');
   const [latticeParallelProjection, setLatticeParallelProjection] = useState(false);
   const [latticeRotation, setLatticeRotation] = useState(0.0);
