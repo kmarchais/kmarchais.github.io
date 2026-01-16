@@ -20,7 +20,7 @@ import {
   website
 } from "../assets";
 
-import type { NavLink, Service, Technology, Project } from "../types";
+import type { NavLink, Service, Technology, Project, Demo } from "../types";
 
 export const navLinks: NavLink[] = [
   {
@@ -192,4 +192,37 @@ const projects: Project[] = [
   },
 ];
 
-export { services, technologies, projects };
+const demos: Demo[] = [
+  {
+    name: "Computational Geometry",
+    description: "Interactive TPMS and lattice structure visualization with real-time SDF ray marching.",
+    path: "/showcase/geometry",
+    tags: [
+      { name: "TPMS", color: "blue-text-gradient" },
+      { name: "Lattice", color: "green-text-gradient" },
+      { name: "WebGL", color: "pink-text-gradient" },
+    ],
+  },
+  {
+    name: "Physics Simulations",
+    description: "WebGPU-powered N-Body, granular (DEM), and fluid (SPH) simulations.",
+    path: "/showcase/simulations",
+    tags: [
+      { name: "WebGPU", color: "blue-text-gradient" },
+      { name: "Physics", color: "green-text-gradient" },
+      { name: "Compute", color: "pink-text-gradient" },
+    ],
+  },
+  {
+    name: "Periodic Chess",
+    description: "Chess game on a periodic board with 2D and 3D visualization modes.",
+    path: "/showcase/chess",
+    tags: [
+      { name: "Game", color: "blue-text-gradient" },
+      { name: "ThreeJS", color: "green-text-gradient" },
+      { name: "React", color: "pink-text-gradient" },
+    ],
+  },
+];
+
+export { services, technologies, projects, demos };
