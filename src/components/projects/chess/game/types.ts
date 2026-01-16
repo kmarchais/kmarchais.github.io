@@ -61,18 +61,18 @@ export const PIECE_VALUES: Record<PieceType, number> = {
   king: 20000,
 };
 
-// Unicode chess symbols - using filled symbols for both colors (styled via CSS)
+// Unicode chess symbols - outline for white, filled for black
 export const PIECE_SYMBOLS: Record<Color, Record<PieceType, string>> = {
   white: {
-    king: '\u265A',   // ♚ (filled, styled white)
-    queen: '\u265B',  // ♛
-    rook: '\u265C',   // ♜
-    bishop: '\u265D', // ♝
-    knight: '\u265E', // ♞
-    pawn: '\u265F',   // ♟
+    king: '\u2654',   // ♔ (outline)
+    queen: '\u2655',  // ♕
+    rook: '\u2656',   // ♖
+    bishop: '\u2657', // ♗
+    knight: '\u2658', // ♘
+    pawn: '\u2659',   // ♙
   },
   black: {
-    king: '\u265A',   // ♚
+    king: '\u265A',   // ♚ (filled)
     queen: '\u265B',  // ♛
     rook: '\u265C',   // ♜
     bishop: '\u265D', // ♝
@@ -95,4 +95,53 @@ export function algebraicToSquare(notation: string): Square | null {
   const rank = parseInt(notation[1]) - 1;
   if (file === -1 || rank < 0 || rank > 7) return null;
   return { file: file as FileIndex, rank: rank as RankIndex };
+}
+
+// Piece letters for algebraic notation
+const PIECE_LETTERS: Record<PieceType, string> = {
+  king: 'K',
+  queen: 'Q',
+  rook: 'R',
+  bishop: 'B',
+  knight: 'N',
+  pawn: '',
+};
+
+// Convert a move to algebraic notation
+export function moveToAlgebraic(move: Move, isCheck: boolean, isCheckmate: boolean): string {
+  // Castling
+  if (move.isCastling === 'kingside') return 'O-O';
+  if (move.isCastling === 'queenside') return 'O-O-O';
+
+  let notation = '';
+
+  // Piece letter (empty for pawns)
+  notation += PIECE_LETTERS[move.piece.type];
+
+  // For pawns capturing, include the file
+  if (move.piece.type === 'pawn' && move.capture) {
+    notation += FILE_LETTERS[move.from.file];
+  }
+
+  // Capture indicator
+  if (move.capture) {
+    notation += 'x';
+  }
+
+  // Destination square
+  notation += squareToAlgebraic(move.to);
+
+  // Promotion
+  if (move.promotion) {
+    notation += '=' + PIECE_LETTERS[move.promotion];
+  }
+
+  // Check or checkmate
+  if (isCheckmate) {
+    notation += '#';
+  } else if (isCheck) {
+    notation += '+';
+  }
+
+  return notation;
 }

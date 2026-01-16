@@ -1,7 +1,8 @@
 import { useMemo, useState, useCallback } from 'react';
 import type { GameState, Square, Move, RankIndex, Color } from './game/types';
-import { PIECE_SYMBOLS, FILE_LETTERS } from './game/types';
+import { FILE_LETTERS } from './game/types';
 import { squaresEqual, wrapFile } from './game/board';
+import ChessPieceSVG from './ChessPieceSVG';
 
 interface ChessBoard2DProps {
   gameState: GameState;
@@ -121,36 +122,45 @@ export default function ChessBoard2D({
     };
     const piece = board[rank][wrappedFile];
     const isLight = (wrappedFile + rank) % 2 === 1;
-    const isSelected = !isGhost && selectedSquare && squaresEqual(square, selectedSquare);
-    const isLegalTarget = !isGhost && legalTargets.has(`${wrappedFile},${rank}`);
-    const isDragTarget = !isGhost && dragLegalTargets.has(`${wrappedFile},${rank}`);
-    const isDragOver = !isGhost && dragOverSquare && squaresEqual(square, dragOverSquare);
-    const isBeingDragged = !isGhost && draggedSquare && squaresEqual(square, draggedSquare);
-    const isLastMove = !isGhost && isLastMoveSquare(square);
-    const isInCheck = !isGhost && isKingInCheck(square);
-    const canDrag = !isGhost && piece && piece.color === turn;
+    const isSelected = selectedSquare && squaresEqual(square, selectedSquare);
+    const isLegalTarget = legalTargets.has(`${wrappedFile},${rank}`);
+    const isDragTarget = dragLegalTargets.has(`${wrappedFile},${rank}`);
+    const isDragOver = dragOverSquare && squaresEqual(square, dragOverSquare);
+    const isBeingDragged = draggedSquare && squaresEqual(square, draggedSquare);
+    const isLastMove = isLastMoveSquare(square);
+    const isInCheck = isKingInCheck(square);
+    const canDrag = piece && piece.color === turn;
 
     return (
       <div
-        onClick={() => !isGhost && onSquareClick(square)}
-        onDragOver={(e) => !isGhost && handleDragOver(e, square)}
+        onClick={() => onSquareClick(square)}
+        onDragOver={(e) => handleDragOver(e, square)}
         onDragLeave={handleDragLeave}
-        onDrop={(e) => !isGhost && handleDrop(e, square)}
+        onDrop={(e) => handleDrop(e, square)}
         className={`
           w-full h-full flex items-center justify-center relative
-          transition-all duration-150
-          ${isLight ? 'bg-amber-100' : 'bg-amber-700'}
-          ${isGhost ? 'opacity-40 cursor-default' : 'cursor-pointer hover:brightness-110'}
+          transition-all duration-150 cursor-pointer
+          ${isLight ? 'bg-[#ebecd0]' : 'bg-[#779ab6]'}
+          hover:brightness-105
           ${isSelected ? 'ring-4 ring-inset ring-yellow-400' : ''}
           ${isDragOver ? 'ring-4 ring-inset ring-green-400 brightness-110' : ''}
-          ${isInCheck ? 'bg-red-500' : ''}
         `}
       >
+        {/* Check highlight - red radial glow */}
+        {isInCheck && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'radial-gradient(ellipse at center, rgba(255,0,0,0.8) 0%, rgba(200,0,0,0.6) 40%, rgba(150,0,0,0.3) 70%, transparent 100%)',
+            }}
+          />
+        )}
+
         {/* Last move highlight */}
         {isLastMove && !isSelected && !isInCheck && (
           <div
             className={`absolute inset-0 ${
-              isLight ? 'bg-yellow-300/40' : 'bg-yellow-500/40'
+              isLight ? 'bg-[#cdd26a]/50' : 'bg-[#aaa23a]/50'
             }`}
           />
         )}
@@ -179,30 +189,27 @@ export default function ChessBoard2D({
 
         {/* Piece */}
         {piece && (
-          <span
+          <div
             draggable={!!canDrag}
             onDragStart={(e) => handleDragStart(e, square)}
             onDragEnd={handleDragEnd}
-            className={`text-2xl sm:text-3xl md:text-4xl select-none relative z-10
+            className={`w-[85%] h-[85%] select-none relative z-10
               ${canDrag ? 'cursor-grab active:cursor-grabbing' : ''}
               ${isBeingDragged ? 'opacity-50' : ''}
-              ${piece.color === 'white'
-                ? 'text-white [text-shadow:_-1px_-1px_0_#000,_1px_-1px_0_#000,_-1px_1px_0_#000,_1px_1px_0_#000,_0_2px_4px_rgba(0,0,0,0.8)]'
-                : 'text-black [text-shadow:_-1px_-1px_0_#666,_1px_-1px_0_#666,_-1px_1px_0_#666,_1px_1px_0_#666]'
-            }`}
+            `}
           >
-            {PIECE_SYMBOLS[piece.color][piece.type]}
-          </span>
+            <ChessPieceSVG type={piece.type} color={piece.color} className="w-full h-full" />
+          </div>
         )}
       </div>
     );
   };
 
-  // Render a single 8x8 board
-  const renderBoard = (fileOffset: number, isGhost: boolean, showBorder: boolean) => {
+  // Render a single 8x8 board with square cells
+  const renderBoard = (fileOffset: number, isGhost: boolean) => {
     return (
-      <div className={`${showBorder ? 'border-2 border-tertiary/60' : ''}`}>
-        <div className="grid grid-cols-8 aspect-square" style={{ width: 'calc(8 * clamp(2.5rem, 4vw, 3.5rem))' }}>
+      <div>
+        <div className="grid grid-cols-8 aspect-square h-full">
           {Array.from({ length: 64 }, (_, idx) => {
             const displayRank = Math.floor(idx / 8);
             const displayFile = idx % 8;
@@ -218,14 +225,14 @@ export default function ChessBoard2D({
           })}
         </div>
         {/* File labels */}
-        <div className="grid grid-cols-8" style={{ width: 'calc(8 * clamp(2.5rem, 4vw, 3.5rem))' }}>
+        <div className="grid grid-cols-8">
           {Array.from({ length: 8 }, (_, i) => {
             const file = perspective === 'white' ? i + fileOffset : 7 - i + fileOffset;
             const wrappedFile = wrapFile(file);
             return (
               <span
                 key={i}
-                className={`text-center text-xs text-tertiary py-0.5 ${isGhost ? 'opacity-40' : ''}`}
+                className="text-center text-[10px] text-[#9a9a9a] py-0.5 font-medium"
               >
                 {FILE_LETTERS[wrappedFile]}
               </span>
@@ -236,36 +243,46 @@ export default function ChessBoard2D({
     );
   };
 
-  // Rank labels component
-  const renderRankLabels = () => (
-    <div className="flex flex-col justify-around pr-2" style={{ height: 'calc(8 * clamp(2.5rem, 4vw, 3.5rem))' }}>
-      {Array.from({ length: 8 }, (_, i) => (
-        <span key={i} className="text-xs text-tertiary flex items-center justify-center">
-          {perspective === 'white' ? 8 - i : i + 1}
-        </span>
-      ))}
-    </div>
-  );
+  // Calculate board height based on available space
+  // 3 boards must fit in width (minus panel width ~10rem, gap ~1rem, padding ~1rem)
+  // Also constrained by viewport height
+  const boardStyle = {
+    height: 'min(calc((100vw - 12rem) / 3), calc(100vh - 16rem))',
+  };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="w-full flex flex-col items-center">
       {/* Three boards side by side with rank labels on far left */}
-      <div className="flex items-start">
+      <div className="flex items-stretch" style={boardStyle}>
         {/* Rank labels on the very left */}
-        {renderRankLabels()}
+        <div className="flex flex-col justify-around pr-1 h-full">
+          {Array.from({ length: 8 }, (_, i) => (
+            <div key={i} className="flex-1 flex items-center justify-center">
+              <span className="text-[10px] text-[#9a9a9a] font-medium">
+                {perspective === 'white' ? 8 - i : i + 1}
+              </span>
+            </div>
+          ))}
+        </div>
 
         {/* Left ghost board */}
-        {renderBoard(-8, true, false)}
+        {renderBoard(-8, true)}
+
+        {/* Left separator */}
+        <div className="w-0.5 self-stretch my-1 border-l-2 border-dashed border-white/40" />
 
         {/* Main board */}
-        {renderBoard(0, false, true)}
+        {renderBoard(0, false)}
+
+        {/* Right separator */}
+        <div className="w-0.5 self-stretch my-1 border-l-2 border-dashed border-white/40" />
 
         {/* Right ghost board */}
-        {renderBoard(8, true, false)}
+        {renderBoard(8, true)}
       </div>
 
       {/* Cylinder wrap indicator */}
-      <div className="mt-4 text-tertiary/60 text-sm flex items-center gap-2">
+      <div className="py-2 text-[#7a7a7a] text-sm flex items-center justify-center gap-2">
         <span className="text-lg">↺</span>
         <span>Periodic: columns wrap around (a ↔ h)</span>
         <span className="text-lg">↻</span>
