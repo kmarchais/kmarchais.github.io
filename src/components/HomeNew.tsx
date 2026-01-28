@@ -1,26 +1,27 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import MorphingTPMS from "./canvas/MorphingTPMS";
 import { profile } from "../assets";
-import { technologies, projects } from "../constants";
+import { technologies, projects, demos } from "../constants";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub";
 import { faLinkedin } from "@fortawesome/free-brands-svg-icons/faLinkedin";
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter";
 import { faGitlab } from "@fortawesome/free-brands-svg-icons/faGitlab";
 
+// Lazy load the gyroid flow widget to avoid blocking initial render
+const GyroidFlowWidget = lazy(() => import("./canvas/GyroidFlowWidget"));
+
 interface State {
   name: string;
-  surface: number;
 }
 
 const STATES: State[] = [
-  { name: "Hero", surface: 0 },
-  { name: "About", surface: 1 },
-  { name: "Projects", surface: 2 },
-  { name: "Tech", surface: 3 },
-  { name: "Contact", surface: 4 },
+  { name: "Hero" },
+  { name: "About" },
+  { name: "Projects" },
+  { name: "Tech" },
+  { name: "Contact" },
 ];
 
 const TRANSITION_DURATION = 50;
@@ -104,15 +105,15 @@ const HeroContent = () => (
   >
     <div className="flex items-center gap-6 mb-6">
       <div className="relative">
-        <div className="absolute inset-0 bg-[#778da9]/20 rounded-full blur-xl scale-110" />
+        <div className="absolute inset-0 bg-accent/20 rounded-full blur-xl scale-110" />
         <img
           src={profile}
           alt="Kevin Marchais"
-          className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover ring-2 ring-[#778da9]/50"
+          className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover ring-2 ring-accent/50"
         />
       </div>
       <h1 className="text-white font-black text-[36px] sm:text-[56px] lg:text-[64px] leading-tight">
-        Hi, I'm <span className="text-[#778da9]">Kevin</span>
+        Hi, I'm <span className="text-accent">Kevin</span>
       </h1>
     </div>
     <p className="text-tertiary text-[16px] sm:text-[20px] max-w-xl">
@@ -122,7 +123,7 @@ const HeroContent = () => (
     <div className="mt-8 flex gap-4">
       <button
         onClick={() => window.dispatchEvent(new CustomEvent('changeState', { detail: 1 }))}
-        className="px-6 py-3 bg-[#778da9] text-primary font-semibold rounded-lg hover:bg-[#8a9db8] transition-colors"
+        className="px-6 py-3 bg-accent text-primary font-semibold rounded-lg hover:bg-accent-hover transition-colors"
       >
         Learn More
       </button>
@@ -160,7 +161,7 @@ const AboutContent = () => (
       ].map((skill) => (
         <div
           key={skill}
-          className="bg-[#1B263B]/50 backdrop-blur-sm px-4 py-3 rounded-lg text-tertiary text-sm"
+          className="bg-surface/50 backdrop-blur-sm px-4 py-3 rounded-lg text-tertiary text-sm"
         >
           {skill}
         </div>
@@ -177,44 +178,70 @@ const ProjectsContent = () => (
     transition={{ duration: 0.5 }}
     className="max-w-3xl"
   >
-    <h2 className="text-white font-bold text-[32px] sm:text-[48px] mb-6">
+    <h2 className="text-white font-bold text-[32px] sm:text-[48px] mb-4">
       Projects
     </h2>
-    <div className="grid gap-4">
-      {projects.slice(0, 3).map((project) => (
+
+    {/* Interactive Demos */}
+    <h3 className="text-accent font-semibold text-sm uppercase tracking-wider mb-3">
+      Interactive Demos
+    </h3>
+    <div className="grid grid-cols-2 gap-3 mb-6">
+      {demos.map((demo) => (
+        <Link
+          key={demo.name}
+          to={demo.path}
+          className="bg-surface/50 backdrop-blur-sm p-3 rounded-lg hover:bg-surface/70 transition-colors group"
+        >
+          <h4 className="text-white font-semibold text-sm group-hover:text-accent transition-colors">
+            {demo.name}
+          </h4>
+          <p className="text-tertiary text-xs mt-1 line-clamp-2">
+            {demo.description}
+          </p>
+          <div className="flex gap-1.5 mt-2 flex-wrap">
+            {demo.tags.slice(0, 2).map((tag) => (
+              <span key={tag.name} className={`text-[10px] ${tag.color}`}>
+                #{tag.name}
+              </span>
+            ))}
+          </div>
+        </Link>
+      ))}
+    </div>
+
+    {/* Research Projects */}
+    <h3 className="text-accent font-semibold text-sm uppercase tracking-wider mb-3">
+      Research & Open Source
+    </h3>
+    <div className="grid gap-3">
+      {projects.slice(0, 2).map((project) => (
         <a
           key={project.name}
           href={project.source_code_link}
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-[#1B263B]/50 backdrop-blur-sm p-4 rounded-lg hover:bg-[#1B263B]/70 transition-colors group"
+          className="bg-surface/50 backdrop-blur-sm p-3 rounded-lg hover:bg-surface/70 transition-colors group"
         >
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="text-white font-semibold text-lg group-hover:text-[#778da9] transition-colors">
+              <h4 className="text-white font-semibold text-sm group-hover:text-accent transition-colors">
                 {project.name}
-              </h3>
-              <p className="text-tertiary text-sm mt-1 line-clamp-2">
+              </h4>
+              <p className="text-tertiary text-xs mt-1 line-clamp-1">
                 {project.description}
               </p>
             </div>
-            <span className="text-tertiary text-xl">→</span>
-          </div>
-          <div className="flex gap-2 mt-3">
-            {project.tags.map((tag) => (
-              <span key={tag.name} className={`text-xs ${tag.color}`}>
-                #{tag.name}
-              </span>
-            ))}
+            <span className="text-tertiary text-lg">↗</span>
           </div>
         </a>
       ))}
     </div>
     <Link
       to="/blog"
-      className="inline-block mt-6 text-[#778da9] hover:text-white transition-colors"
+      className="inline-block mt-4 text-accent hover:text-white transition-colors text-sm"
     >
-      View experiments →
+      View blog →
     </Link>
   </motion.div>
 );
@@ -236,7 +263,7 @@ const TechContent = () => (
           key={tech.name}
           className="flex flex-col items-center gap-2 group"
         >
-          <div className="w-16 h-16 bg-[#1B263B]/50 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-[#1B263B]/70 transition-colors">
+          <div className="w-16 h-16 bg-surface/50 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-surface/70 transition-colors">
             <img src={tech.icon} alt={tech.name} className="w-10 h-10 object-contain" />
           </div>
           <span className="text-tertiary text-xs text-center">{tech.name}</span>
@@ -312,41 +339,34 @@ const CONTENT_COMPONENTS = [
 
 const HomeNew = () => {
   const [currentState, setCurrentState] = useState(0);
-  const [surfaceType, setSurfaceType] = useState(0);
-  const [nextSurface, setNextSurface] = useState(0);
-  const [morphProgress, setMorphProgress] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [rotation, setRotation] = useState(0);
   const lastWheelTime = useRef(0);
   const touchStartY = useRef(0);
+  const isMounted = useRef(true);
 
   const changeState = useCallback((newState: number) => {
+    if (!isMounted.current) return;
     if (isTransitioning || newState === currentState) return;
     if (newState < 0 || newState >= STATES.length) return;
 
     setIsTransitioning(true);
-    setNextSurface(STATES[newState].surface);
 
-    const startTime = Date.now();
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / TRANSITION_DURATION, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-
-      setMorphProgress(eased);
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        setSurfaceType(STATES[newState].surface);
-        setMorphProgress(0);
+    // Simple transition timing
+    setTimeout(() => {
+      if (isMounted.current) {
         setCurrentState(newState);
         setIsTransitioning(false);
       }
-    };
-
-    requestAnimationFrame(animate);
+    }, TRANSITION_DURATION);
   }, [currentState, isTransitioning]);
+
+  // Cleanup mounted ref on unmount
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
@@ -405,41 +425,46 @@ const HomeNew = () => {
     };
   }, [currentState, changeState]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRotation((r) => r + 0.002);
-    }, 16);
-    return () => clearInterval(interval);
-  }, []);
 
   const ContentComponent = CONTENT_COMPONENTS[currentState];
 
   return (
     <div className="fixed inset-0 bg-primary overflow-hidden">
-      <div className="absolute inset-0 z-0">
-        <MorphingTPMS
-          surfaceType={surfaceType}
-          nextSurface={nextSurface}
-          morphProgress={morphProgress}
-          rotation={rotation}
-        />
-      </div>
-
       <Navbar currentState={currentState} onStateChange={changeState} />
 
-      <div className="relative z-10 h-full flex items-center">
-        <div className="w-full max-w-7xl mx-auto px-6 sm:px-16">
-          <div className="max-w-2xl">
+      {/* Main content area with 50/50 split on large screens */}
+      <div className="relative z-10 h-full flex">
+        {/* Left side: Content */}
+        <div className="w-full lg:w-1/2 h-full flex items-center">
+          <div className="w-full max-w-2xl mx-auto px-6 sm:px-16 lg:pr-8">
             <AnimatePresence mode="wait">
               <ContentComponent key={currentState} />
             </AnimatePresence>
           </div>
         </div>
+
+        {/* Right side: Gyroid Flow Simulation (hidden on mobile) */}
+        <div className="hidden lg:block lg:w-1/2 h-full relative">
+          <Suspense
+            fallback={
+              <div className="w-full h-full flex items-center justify-center bg-primary">
+                <div className="text-tertiary/50 text-sm">Loading simulation...</div>
+              </div>
+            }
+          >
+            <GyroidFlowWidget
+              className="w-full h-full"
+              particleCount={2000}
+              showHourglass={true}
+              geometryType={currentState >= 1 ? 1 : 0}
+            />
+          </Suspense>
+        </div>
       </div>
 
       <StateIndicator currentState={currentState} onStateChange={changeState} />
 
-      <div className="fixed bottom-8 right-8 text-tertiary/50 text-sm hidden sm:block z-20">
+      <div className="fixed bottom-8 right-8 text-tertiary/50 text-sm hidden lg:block z-20">
         <span>Scroll or use arrow keys</span>
       </div>
     </div>

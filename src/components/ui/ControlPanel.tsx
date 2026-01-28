@@ -31,10 +31,10 @@ export const Slider = ({ label, value, min, max, step, onChange }: SliderProps) 
       step={step}
       value={value}
       onChange={(e) => onChange(parseFloat(e.target.value))}
-      className="w-full h-1.5 bg-[#1B263B] rounded-lg appearance-none cursor-pointer
+      className="w-full h-1.5 bg-surface rounded-lg appearance-none cursor-pointer
         [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
-        [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#778da9]
-        [&::-webkit-slider-thumb]:hover:bg-[#8a9db8] [&::-webkit-slider-thumb]:transition-colors"
+        [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent
+        [&::-webkit-slider-thumb]:hover:bg-accent-hover [&::-webkit-slider-thumb]:transition-colors"
     />
   </div>
 );
@@ -56,8 +56,8 @@ export const Select = ({ label, value, options, onChange }: SelectProps) => (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full px-2 py-1.5 bg-[#1B263B] text-tertiary text-sm rounded border border-[#2a3a52]
-        focus:outline-none focus:border-[#778da9] cursor-pointer"
+      className="w-full px-2 py-1.5 bg-surface text-tertiary text-sm rounded border border-surface
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-primary cursor-pointer"
     >
       {options.map((opt) => (
         <option key={opt} value={opt}>{opt}</option>
@@ -84,8 +84,8 @@ export const Checkbox = ({ label, checked, onChange }: CheckboxProps) => (
       onChange={(e) => onChange(e.target.checked)}
       className="sr-only"
     />
-    <div className={`w-4 h-4 rounded border ${checked ? 'bg-[#778da9] border-[#778da9]' : 'bg-[#1B263B] border-[#2a3a52]'}
-      flex items-center justify-center transition-colors group-hover:border-[#778da9]`}>
+    <div className={`w-4 h-4 rounded border ${checked ? 'bg-accent border-accent' : 'bg-surface border-surface'}
+      flex items-center justify-center transition-colors group-hover:border-accent`}>
       {checked && (
         <svg className="w-3 h-3 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -109,7 +109,7 @@ interface CollapsibleSectionProps {
 export const CollapsibleSection = ({ title, defaultOpen = true, children }: CollapsibleSectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
-    <div className="border-b border-[#1B263B] last:border-b-0">
+    <div className="border-b border-surface last:border-b-0">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between py-2 text-xs font-semibold text-tertiary uppercase tracking-wider hover:text-white transition-colors"
@@ -139,7 +139,7 @@ interface ControlPanelProps {
 }
 
 export const ControlPanel = ({ title, children }: ControlPanelProps) => (
-  <div className="w-72 bg-[#0a0f18] border-l border-[#1B263B] overflow-y-auto">
+  <div className="w-72 bg-surface-dark border-l border-surface overflow-y-auto">
     <div className="p-4">
       <h2 className="text-sm font-bold text-tertiary mb-4">{title}</h2>
       {children}

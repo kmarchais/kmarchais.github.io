@@ -14,17 +14,17 @@ const Hero = () => {
           className="flex flex-col
         items-center justify-center mt-5"
         >
-          <div className="w-5 h-5 rounded-full bg-[#778da9]"></div>
+          <div className="w-5 h-5 rounded-full bg-accent"></div>
           <div className="w-1 sm:h-80 h-40 violet-gradient"></div>
         </div>
         <div>
           <h1 className={`${styles.heroHeadText} text-white`}>
-            Hi, I'm <span className="text-[#778da9]">Kevin</span>
+            Hi, I'm <span className="text-accent">Kevin</span>
           </h1>
           <p className={`${styles.heroSubText} mt-2 text-white-100`}>
             I'm a research engineer <br className="sm:block hidden" />
             on physics simulation working at{" "}
-            <span className="text-[#778da9]">Hivelix</span>
+            <span className="text-accent">Hivelix</span>
           </p>
         </div>
       </div>

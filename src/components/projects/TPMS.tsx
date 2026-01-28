@@ -591,7 +591,7 @@ const TPMS = () => {
   return (
     <div className="bg-primary">
       <Navbar />
-      <Leva collapsed={false} />
+      {import.meta.env.DEV && <Leva collapsed={false} />}
       <section className="h-screen flex">
         {isMobile ? (
           <div className="w-full h-full flex items-center justify-center text-center px-8 text-secondary">

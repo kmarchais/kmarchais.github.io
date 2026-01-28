@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import Navbar from '../../Navbar';
+import Breadcrumb from '../../ui/Breadcrumb';
 import ChessBoard2D from './ChessBoard2D';
 import ChessBoard3D from './ChessBoard3D';
 import { createInitialGameState, getPieceAt } from './game/board';
@@ -65,7 +66,7 @@ export default function Chess() {
   }, [currentState, isViewingHistory]);
 
   // Add a move to history
-  const addMoveToHistory = useCallback((state: GameState, move: Move, newState: GameState) => {
+  const addMoveToHistory = useCallback((_state: GameState, move: Move, newState: GameState) => {
     const notation = moveToAlgebraic(move, newState.isCheck, newState.isCheckmate);
     setHistory(prev => [...prev, { state: newState, move, notation }]);
     setViewingIndex(prev => prev + 1);
@@ -328,9 +329,15 @@ export default function Chess() {
   return (
     <div className="bg-primary min-h-screen">
       <Navbar />
+      <div className="pt-16">
+        <Breadcrumb items={[
+          { label: 'Home', path: '/' },
+          { label: 'Chess' },
+        ]} />
+      </div>
 
       {/* Main content */}
-      <section className="pt-20 px-2 pb-4 h-[calc(100vh-5rem)] flex flex-col">
+      <section className="pt-4 px-2 pb-4 h-[calc(100vh-7rem)] flex flex-col">
         <div className="w-full flex-1 flex flex-col">
           {/* Title and controls */}
           <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
@@ -417,7 +424,7 @@ export default function Chess() {
                   <select
                     value={aiDifficulty}
                     onChange={(e) => setAiDifficulty(e.target.value as AIDifficulty)}
-                    className="px-3 py-1.5 bg-secondary/30 text-white text-sm rounded border border-secondary/50 focus:outline-none"
+                    className="px-3 py-1.5 bg-secondary/30 text-white text-sm rounded border border-secondary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-primary"
                   >
                     <option value="easy">Easy</option>
                     <option value="medium">Medium</option>

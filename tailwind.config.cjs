@@ -8,6 +8,10 @@ module.exports = {
         primary: "#0d1b2a",
         secondary: "#415A77",
         tertiary: "#E0e1dd",
+        accent: "#778da9",
+        "accent-hover": "#8a9db8",
+        surface: "#1B263B",
+        "surface-dark": "#0a0f18",
         "black-100": "#100d25",
         "black-200": "#090325",
         "white-100": "#f3f3f3",
@@ -17,9 +21,6 @@ module.exports = {
       },
       screens: {
         xs: "450px",
-      },
-      backgroundImage: {
-        "hero-pattern": "url('/src/assets/herobg.png')",
       },
       typography: (theme) => ({
         DEFAULT: {

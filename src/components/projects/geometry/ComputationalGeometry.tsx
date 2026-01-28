@@ -5,7 +5,7 @@
  * Real-time SDF ray marching visualization with interactive controls.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   GizmoHelper,
@@ -29,15 +29,18 @@ import {
   ControlsHint,
   MobileFallback,
 } from '../../ui/ControlPanel';
+import Breadcrumb from '../../ui/Breadcrumb';
 
 // TPMS imports
 import {
   vertexShader as tpmsVertexShader,
-  fragmentShader as tpmsFragmentShader,
+  getFragmentShader as getTPMSFragmentShader,
   SURFACE_INDEX,
   SURFACE_NAMES,
   COLORMAP_INDEX as TPMS_COLORMAP_INDEX,
   COLORMAP_NAMES as TPMS_COLORMAP_NAMES,
+  QUALITY_TIERS,
+  type QualityTier,
 } from '../tpms/TPMSShader';
 import { TPMS_SURFACES } from '@/shaders/tpms/surfaces';
 
@@ -49,6 +52,10 @@ import {
   LATTICE_NAMES,
   COLORMAP_INDEX as LATTICE_COLORMAP_INDEX,
   COLORMAP_NAMES as LATTICE_COLORMAP_NAMES,
+  COLOR_MODE_INDEX,
+  COLOR_MODE_NAMES,
+  BLEND_MODE_INDEX,
+  BLEND_MODE_NAMES,
 } from '../lattice/LatticeShader';
 import { LATTICE_TYPES } from '@/shaders/lattice/surfaces';
 
@@ -88,12 +95,14 @@ interface LatticeParams {
   strutRadius: number;
   nodeRadius: number;
   nodeSmoothing: number;
+  blendMode: string;
   cellSize: number;
   repeatX: number;
   repeatY: number;
   repeatZ: number;
   rotation: number;
   colormap: string;
+  colorMode: string;
   parallelProjection: boolean;
   lightIntensity: number;
   ambient: number;
@@ -108,7 +117,7 @@ interface LatticeParams {
 // TPMS Viewer Component
 // ============================================================================
 
-const TPMSViewer = ({ params }: { params: TPMSParams }) => {
+const TPMSViewer = ({ params, fragmentShader: tpmsFragmentShader }: { params: TPMSParams; fragmentShader: string }) => {
   const material = useRef<ShaderMaterial>(null);
   const { size, camera, gl } = useThree();
   const lastAspect = useRef(size.width / size.height);
@@ -256,6 +265,8 @@ const LatticeViewer = ({ params }: { params: LatticeParams }) => {
       uRepeatCount: { value: new Vector3(params.repeatX, params.repeatY, params.repeatZ) },
       uRotation: { value: params.rotation },
       uColormap: { value: LATTICE_COLORMAP_INDEX[params.colormap] ?? 1 },
+      uColorMode: { value: COLOR_MODE_INDEX[params.colorMode] ?? 0 },
+      uBlendMode: { value: BLEND_MODE_INDEX[params.blendMode] ?? 1 },
       uParallelProjection: { value: params.parallelProjection },
       uOrthoScale: { value: 1.0 },
       uLightIntensity: { value: params.lightIntensity },
@@ -322,6 +333,8 @@ const LatticeViewer = ({ params }: { params: LatticeParams }) => {
     material.current.uniforms.uRepeatCount.value.set(params.repeatX, params.repeatY, params.repeatZ);
     material.current.uniforms.uRotation.value = params.rotation;
     material.current.uniforms.uColormap.value = LATTICE_COLORMAP_INDEX[params.colormap] ?? 1;
+    material.current.uniforms.uColorMode.value = COLOR_MODE_INDEX[params.colorMode] ?? 0;
+    material.current.uniforms.uBlendMode.value = BLEND_MODE_INDEX[params.blendMode] ?? 1;
     material.current.uniforms.uLightIntensity.value = params.lightIntensity;
     material.current.uniforms.uAmbient.value = params.ambient;
     material.current.uniforms.uContrast.value = params.contrast;
@@ -370,6 +383,91 @@ function computeCameraPosition(boundsX: number, boundsY: number, boundsZ: number
 }
 
 // ============================================================================
+// Performance Monitor Component
+// ============================================================================
+
+interface PerformanceStats {
+  fps: number;
+  frameTime: number;
+  memory: number | null; // JS heap in MB (Chrome only)
+  drawCalls: number;
+  triangles: number;
+  gpuName: string | null;
+}
+
+interface PerformanceMonitorProps {
+  onUpdate: (stats: PerformanceStats) => void;
+}
+
+// Extend Performance interface for Chrome's memory API
+declare global {
+  interface Performance {
+    memory?: {
+      usedJSHeapSize: number;
+      totalJSHeapSize: number;
+      jsHeapSizeLimit: number;
+    };
+  }
+}
+
+const PerformanceMonitor = ({ onUpdate }: PerformanceMonitorProps) => {
+  const { gl } = useThree();
+  const frameCount = useRef(0);
+  const lastTime = useRef(performance.now());
+  const frameTimes = useRef<number[]>([]);
+  const gpuName = useRef<string | null>(null);
+
+  // Get GPU info once on mount
+  useEffect(() => {
+    const debugInfo = gl.getContext().getExtension('WEBGL_debug_renderer_info');
+    if (debugInfo) {
+      gpuName.current = gl.getContext().getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+    }
+  }, [gl]);
+
+  useFrame(() => {
+    const now = performance.now();
+    const delta = now - lastTime.current;
+    lastTime.current = now;
+
+    // Track frame times for averaging
+    frameTimes.current.push(delta);
+    if (frameTimes.current.length > 60) {
+      frameTimes.current.shift();
+    }
+
+    frameCount.current++;
+
+    // Update every 30 frames
+    if (frameCount.current >= 30) {
+      const avgFrameTime = frameTimes.current.reduce((a, b) => a + b, 0) / frameTimes.current.length;
+      const fps = 1000 / avgFrameTime;
+
+      // Get memory usage (Chrome only)
+      const memory = performance.memory
+        ? performance.memory.usedJSHeapSize / (1024 * 1024)
+        : null;
+
+      // Get render stats from Three.js
+      const info = gl.info;
+
+      onUpdate({
+        fps,
+        frameTime: avgFrameTime,
+        memory,
+        drawCalls: info.render.calls,
+        triangles: info.render.triangles,
+        gpuName: gpuName.current,
+      });
+
+      frameCount.current = 0;
+    }
+  });
+
+  return null;
+};
+
+// ============================================================================
 // Tab Button Component
 // ============================================================================
 
@@ -384,8 +482,8 @@ const TabButton = ({ active, onClick, children }: TabButtonProps) => (
     onClick={onClick}
     className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
       active
-        ? 'bg-[#778da9] text-primary'
-        : 'text-secondary hover:text-tertiary hover:bg-[#1B263B]'
+        ? 'bg-accent text-primary'
+        : 'text-secondary hover:text-tertiary hover:bg-surface'
     }`}
   >
     {children}
@@ -479,11 +577,13 @@ interface LatticeControlsProps {
     setStrutRadius: (v: number) => void;
     setNodeRadius: (v: number) => void;
     setNodeSmoothing: (v: number) => void;
+    setBlendMode: (v: string) => void;
     setCellSize: (v: number) => void;
     setRepeatX: (v: number) => void;
     setRepeatY: (v: number) => void;
     setRepeatZ: (v: number) => void;
     setColormap: (v: string) => void;
+    setColorMode: (v: string) => void;
     setParallelProjection: (v: boolean) => void;
     setRotation: (v: number) => void;
     setLightIntensity: (v: number) => void;
@@ -503,8 +603,9 @@ const LatticeControls = ({ params, setParams }: LatticeControlsProps) => (
     </div>
 
     <CollapsibleSection title="Structure">
-      <Slider label="Strut Thickness" value={params.strutRadius} min={0.01} max={0.15} step={0.005} onChange={setParams.setStrutRadius} />
-      <Slider label="Fillet Radius" value={params.nodeSmoothing} min={0} max={0.1} step={0.005} onChange={setParams.setNodeSmoothing} />
+      <Slider label="Strut Radius" value={params.strutRadius} min={0.01} max={0.15} step={0.005} onChange={setParams.setStrutRadius} />
+      <Select label="Fillet Mode" value={params.blendMode} options={BLEND_MODE_NAMES} onChange={setParams.setBlendMode} />
+      <Slider label="Fillet Radius" value={params.nodeSmoothing} min={0} max={0.5} step={0.01} onChange={setParams.setNodeSmoothing} />
       <Slider label="Cell Size" value={params.cellSize} min={0.5} max={2.0} step={0.1} onChange={setParams.setCellSize} />
     </CollapsibleSection>
 
@@ -515,6 +616,7 @@ const LatticeControls = ({ params, setParams }: LatticeControlsProps) => (
     </CollapsibleSection>
 
     <CollapsibleSection title="Rendering" defaultOpen={false}>
+      <Select label="Color Mode" value={params.colorMode} options={COLOR_MODE_NAMES} onChange={setParams.setColorMode} />
       <Select label="Colormap" value={params.colormap} options={LATTICE_COLORMAP_NAMES} onChange={setParams.setColormap} />
       <Checkbox label="Orthographic" checked={params.parallelProjection} onChange={setParams.setParallelProjection} />
       <Slider label="Rotation" value={params.rotation} min={0} max={6.28} step={0.01} onChange={setParams.setRotation} />
@@ -536,10 +638,36 @@ const LatticeControls = ({ params, setParams }: LatticeControlsProps) => (
 // Main ComputationalGeometry Component
 // ============================================================================
 
+function getDefaultQuality(): QualityTier {
+  const cores = navigator.hardwareConcurrency ?? 4;
+  if (cores <= 4) return 'low';
+  if (cores <= 8) return 'medium';
+  return 'high';
+}
+
 const ComputationalGeometry = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('tpms');
   const [cameraKey, setCameraKey] = useState(0);
+  const [quality, setQuality] = useState<QualityTier>(getDefaultQuality);
+
+  const computedTPMSShader = useMemo(() => {
+    const tier = QUALITY_TIERS[quality];
+    return getTPMSFragmentShader(tier.volSteps, tier.surfSteps);
+  }, [quality]);
+
+  // Performance stats
+  const [perfStats, setPerfStats] = useState<PerformanceStats>({
+    fps: 0,
+    frameTime: 0,
+    memory: null,
+    drawCalls: 0,
+    triangles: 0,
+    gpuName: null,
+  });
+  const handlePerfUpdate = useCallback((stats: PerformanceStats) => {
+    setPerfStats(stats);
+  }, []);
 
   // TPMS State
   const [tpmsSurface, setTpmsSurface] = useState('Gyroid');
@@ -570,11 +698,13 @@ const ComputationalGeometry = () => {
   const [latticeStrutRadius, setLatticeStrutRadius] = useState(0.04);
   const [latticeNodeRadius, setLatticeNodeRadius] = useState(0.06);
   const [latticeNodeSmoothing, setLatticeNodeSmoothing] = useState(0.02);
+  const [latticeBlendMode, setLatticeBlendMode] = useState('Quadratic');
   const [latticeCellSize, setLatticeCellSize] = useState(1.0);
   const [latticeRepeatX, setLatticeRepeatX] = useState(1);
   const [latticeRepeatY, setLatticeRepeatY] = useState(1);
   const [latticeRepeatZ, setLatticeRepeatZ] = useState(1);
   const [latticeColormap, setLatticeColormap] = useState('Viridis');
+  const [latticeColorMode, setLatticeColorMode] = useState('SDF');
   const [latticeParallelProjection, setLatticeParallelProjection] = useState(false);
   const [latticeRotation, setLatticeRotation] = useState(0.0);
   const [latticeLightIntensity, setLatticeLightIntensity] = useState(1.2);
@@ -615,11 +745,13 @@ const ComputationalGeometry = () => {
     strutRadius: latticeStrutRadius,
     nodeRadius: latticeNodeRadius,
     nodeSmoothing: latticeNodeSmoothing,
+    blendMode: latticeBlendMode,
     cellSize: latticeCellSize,
     repeatX: latticeRepeatX,
     repeatY: latticeRepeatY,
     repeatZ: latticeRepeatZ,
     colormap: latticeColormap,
+    colorMode: latticeColorMode,
     parallelProjection: latticeParallelProjection,
     rotation: latticeRotation,
     lightIntensity: latticeLightIntensity,
@@ -653,7 +785,11 @@ const ComputationalGeometry = () => {
       ) : (
         <>
           {/* Header with title and tabs */}
-          <div className="pt-16 bg-[#0a0f18] border-b border-[#1B263B]">
+          <div className="pt-16 bg-surface-dark border-b border-surface">
+            <Breadcrumb items={[
+              { label: 'Home', path: '/' },
+              { label: 'Computational Geometry' },
+            ]} />
             <div className="flex items-center justify-between px-6 py-3">
               <div>
                 <h1 className="text-xl font-bold text-tertiary">Computational Geometry</h1>
@@ -675,13 +811,27 @@ const ComputationalGeometry = () => {
                   )}
                 </p>
               </div>
-              <div className="flex gap-1 bg-[#1B263B]/50 rounded-lg p-1">
-                <TabButton active={activeTab === 'tpms'} onClick={() => setActiveTab('tpms')}>
-                  TPMS
-                </TabButton>
-                <TabButton active={activeTab === 'lattice'} onClick={() => setActiveTab('lattice')}>
-                  Lattice
-                </TabButton>
+              <div className="flex items-center gap-3">
+                <div className="flex gap-1 bg-surface/50 rounded-lg p-1">
+                  <TabButton active={activeTab === 'tpms'} onClick={() => setActiveTab('tpms')}>
+                    TPMS
+                  </TabButton>
+                  <TabButton active={activeTab === 'lattice'} onClick={() => setActiveTab('lattice')}>
+                    Lattice
+                  </TabButton>
+                </div>
+                {activeTab === 'tpms' && (
+                  <select
+                    value={quality}
+                    onChange={(e) => setQuality(e.target.value as QualityTier)}
+                    className="bg-surface/50 text-secondary text-xs rounded-lg px-2 py-1 border border-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+                    title="Shader quality"
+                  >
+                    {(Object.keys(QUALITY_TIERS) as QualityTier[]).map((tier) => (
+                      <option key={tier} value={tier}>{QUALITY_TIERS[tier].label}</option>
+                    ))}
+                  </select>
+                )}
               </div>
             </div>
           </div>
@@ -718,30 +868,75 @@ const ComputationalGeometry = () => {
                   }}
                 />
                 {activeTab === 'tpms' ? (
-                  <TPMSViewer params={tpmsParams} />
+                  <TPMSViewer params={tpmsParams} fragmentShader={computedTPMSShader} />
                 ) : (
                   <LatticeViewer params={latticeParams} />
                 )}
                 <GizmoHelper alignment="bottom-left" margin={[80, 80]}>
                   <GizmoViewport axisColors={['#d43d3d', '#2fb36d', '#2d6cdf']} />
                 </GizmoHelper>
+                <PerformanceMonitor onUpdate={handlePerfUpdate} />
               </Canvas>
 
-              {/* Reset View Button */}
-              <button
-                onClick={() => setCameraKey((k) => k + 1)}
-                className="absolute top-4 right-4 px-3 py-1.5 bg-black/80 backdrop-blur-sm text-secondary text-xs
-                  rounded-lg hover:text-tertiary hover:bg-black/90 transition-colors"
-                title="Reset camera view"
-              >
-                Reset View
-              </button>
+              {/* Top right controls */}
+              <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
+                {/* Performance Stats */}
+                <div className="px-3 py-2 bg-black/80 backdrop-blur-sm rounded-lg">
+                  <div className="flex flex-col gap-1 text-xs font-mono">
+                    {/* FPS and Frame Time */}
+                    <div className="flex items-center gap-3">
+                      <span>
+                        <span className={perfStats.fps >= 50 ? 'text-green-400' : perfStats.fps >= 30 ? 'text-yellow-400' : 'text-red-400'}>
+                          {perfStats.fps.toFixed(0)}
+                        </span>
+                        <span className="text-tertiary/60 ml-1">FPS</span>
+                      </span>
+                      <span>
+                        <span className="text-tertiary">{perfStats.frameTime.toFixed(1)}</span>
+                        <span className="text-tertiary/60 ml-1">ms</span>
+                      </span>
+                    </div>
+                    {/* Memory and Draw Calls */}
+                    <div className="flex items-center gap-3 text-tertiary/80">
+                      {perfStats.memory !== null && (
+                        <span>
+                          <span className="text-tertiary">{perfStats.memory.toFixed(0)}</span>
+                          <span className="text-tertiary/60 ml-1">MB</span>
+                        </span>
+                      )}
+                      <span>
+                        <span className="text-tertiary">{perfStats.drawCalls}</span>
+                        <span className="text-tertiary/60 ml-1">draws</span>
+                      </span>
+                      <span>
+                        <span className="text-tertiary">{(perfStats.triangles / 1000).toFixed(1)}k</span>
+                        <span className="text-tertiary/60 ml-1">tris</span>
+                      </span>
+                    </div>
+                    {/* GPU Name */}
+                    {perfStats.gpuName && (
+                      <div className="text-[10px] text-tertiary/50 truncate max-w-[200px]" title={perfStats.gpuName}>
+                        {perfStats.gpuName}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {/* Reset View Button */}
+                <button
+                  onClick={() => setCameraKey((k) => k + 1)}
+                  className="px-3 py-1.5 bg-black/80 backdrop-blur-sm text-secondary text-xs
+                    rounded-lg hover:text-tertiary hover:bg-black/90 transition-colors"
+                  title="Reset camera view"
+                >
+                  Reset View
+                </button>
+              </div>
 
               <ControlsHint />
             </div>
 
             {/* Right Panel */}
-            <div className="w-72 bg-[#0a0f18] border-l border-[#1B263B] flex flex-col">
+            <div className="w-72 bg-surface-dark border-l border-surface flex flex-col">
               {/* Controls */}
               <div className="flex-1 overflow-y-auto p-4">
               {activeTab === 'tpms' ? (
@@ -780,11 +975,13 @@ const ComputationalGeometry = () => {
                     setStrutRadius: setLatticeStrutRadius,
                     setNodeRadius: setLatticeNodeRadius,
                     setNodeSmoothing: setLatticeNodeSmoothing,
+                    setBlendMode: setLatticeBlendMode,
                     setCellSize: setLatticeCellSize,
                     setRepeatX: setLatticeRepeatX,
                     setRepeatY: setLatticeRepeatY,
                     setRepeatZ: setLatticeRepeatZ,
                     setColormap: setLatticeColormap,
+                    setColorMode: setLatticeColorMode,
                     setParallelProjection: setLatticeParallelProjection,
                     setRotation: setLatticeRotation,
                     setLightIntensity: setLatticeLightIntensity,
@@ -800,7 +997,7 @@ const ComputationalGeometry = () => {
             </div>
 
             {/* Info Panel at bottom of sidebar */}
-            <div className="border-t border-[#1B263B] p-4">
+            <div className="border-t border-surface p-4">
               {activeTab === 'tpms' && currentTPMSInfo && (
                 <>
                   <h3 className="text-sm font-bold text-tertiary">{currentTPMSInfo.displayName}</h3>
