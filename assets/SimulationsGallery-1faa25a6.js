@@ -1,4 +1,4 @@
-import{j as r,b as e}from"./vendor-r3f-b9e513d9.js";import{r as n,L as m}from"./vendor-react-11ad1bf9.js";import{N as o}from"./index-5defc65d.js";import{B as h}from"./Breadcrumb-746ada9d.js";import"./vendor-ui-4807b111.js";import{W as p}from"./WebGPUNotSupported-857de87f.js";import{u}from"./gpuCapabilities-6d047e77.js";import"./vendor-three-a8671fcb.js";function x({title:i,description:s,route:l,icon:t,tags:a,gradient:d}){return r(m,{to:l,className:`
+import{j as r,b as e}from"./vendor-r3f-b9e513d9.js";import{r as n,L as m}from"./vendor-react-11ad1bf9.js";import{N as o}from"./index-c8982a94.js";import{B as h}from"./Breadcrumb-746ada9d.js";import"./vendor-ui-4807b111.js";import{W as p}from"./WebGPUNotSupported-857de87f.js";import{u}from"./gpuCapabilities-6d047e77.js";import"./vendor-three-a8671fcb.js";function x({title:i,description:s,route:l,icon:t,tags:a,gradient:d}){return r(m,{to:l,className:`
         group relative rounded-xl overflow-hidden
         bg-gradient-to-br ${d}
         transition-all duration-300

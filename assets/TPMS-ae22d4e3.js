@@ -1,4 +1,4 @@
-import{j as f,b as r,C as g,i as y,f as S,G as C,e as b,k as z,d as F}from"./vendor-r3f-b9e513d9.js";import{r as l}from"./vendor-react-11ad1bf9.js";import{c as n}from"./vendor-three-a8671fcb.js";import{u as w}from"./vendor-ui-4807b111.js";import{N as R}from"./index-5defc65d.js";const P=`
+import{j as f,b as r,C as g,i as y,f as S,G as C,e as b,k as z,d as F}from"./vendor-r3f-b9e513d9.js";import{r as l}from"./vendor-react-11ad1bf9.js";import{c as n}from"./vendor-three-a8671fcb.js";import{u as w}from"./vendor-ui-4807b111.js";import{N as R}from"./index-c8982a94.js";const P=`
 varying vec2 vUv;
 void main() {
   vUv = uv;
