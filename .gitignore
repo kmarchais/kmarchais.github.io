@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Personal planning files (not for commit)
+PORTFOLIO_VISION.md
+PORTFOLIO_IMPLEMENTATION_PLAN.md
+IMPLEMENTATION_TODOS.md

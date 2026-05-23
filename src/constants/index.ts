@@ -1,228 +1,42 @@
-import {
-  backend,
-  blender,
-  cpp,
-  creator,
-  cuda,
-  github,
-  github_logo,
-  linux,
-  microgen,
-  mmgpy,
-  mobile,
-  pdf,
-  phd,
-  python,
-  reactjs,
-  threejs,
-  unreal,
-  web,
-  website
-} from "../assets";
+import type { OpenSourceProject } from "../types";
 
-import type { NavLink, Service, Technology, Project, Demo } from "../types";
+export const stack = ["Python", "C++", "CUDA"] as const;
 
-export const navLinks: NavLink[] = [
-  {
-    id: "about",
-    title: "About",
-  },
-  {
-    id: "projects",
-    title: "Projects",
-  },
-  {
-    id: "blog",
-    title: "Blog",
-    path: "/blog",
-  },
-  {
-    id: "contact",
-    title: "Contact",
-  },
-];
-
-const services: Service[] = [
-  {
-    title: "Physics simulations",
-    icon: web,
-  },
-  {
-    title: "Particle based simulations",
-    icon: mobile,
-  },
-  {
-    title: "Additive manufacturing",
-    icon: backend,
-  },
-  {
-    title: "Machine Learning",
-    icon: creator,
-  },
-];
-
-const technologies: Technology[] = [
-  {
-    name: "Python",
-    icon: python,
-  },
-  {
-    name: "C++",
-    icon: cpp,
-  },
-  {
-    name: "CUDA",
-    icon: cuda,
-  },
-  {
-    name: "GitHub",
-    icon: github_logo,
-  },
-  {
-    name: "Linux",
-    icon: linux,
-  },
-  {
-    name: "React JS",
-    icon: reactjs,
-  },
-  {
-    name: "Three JS",
-    icon: threejs,
-  },
-  {
-    name: "Blender",
-    icon: blender,
-  },
-  {
-    name: "Unreal Engine",
-    icon: unreal,
-  },
-];
-
-
-const projects: Project[] = [
-  {
-    name: "PhD - 3D printing",
-    description:
-      "Developed numerical simulation tools to predict the granular behaviour of powder in LPBF additive manufacturing process for metal pieces.",
-    tags: [
-      {
-        name: "3Dprinting",
-        color: "blue-text-gradient",
-      },
-      {
-        name: "DEM",
-        color: "green-text-gradient",
-      },
-      {
-        name: "C++",
-        color: "pink-text-gradient",
-      },
-    ],
-    image: phd,
-    source_code_link: "https://pastel.archives-ouvertes.fr/tel-03663374v1/document",
-    link_logo: pdf
-  },
-  {
-    name: "Microgen",
-    description:
-      "Development of an open source software to generate parametric lattice structures including Triply Periodic Minimal Surfaces with 3MAH team at I2M Bordeaux.",
-    tags: [
-      {
-        name: "Lattice",
-        color: "blue-text-gradient",
-      },
-      {
-        name: "OpenSource",
-        color: "green-text-gradient",
-      },
-      {
-        name: "Python",
-        color: "pink-text-gradient",
-      },
-    ],
-    image: microgen,
-    source_code_link: "https://github.com/3MAH/microgen",
-    link_logo: github
-  },
+export const openSource: OpenSourceProject[] = [
   {
     name: "mmgpy",
-    description:
-      "Python bindings for the MMG remeshing library to generate, optimize, and refine 2D, 3D, and surface meshes with PyVista integration.",
-    tags: [
-      {
-        name: "Meshing",
-        color: "blue-text-gradient",
-      },
-      {
-        name: "OpenSource",
-        color: "green-text-gradient",
-      },
-      {
-        name: "Python",
-        color: "pink-text-gradient",
-      },
-    ],
-    image: mmgpy,
-    source_code_link: "https://github.com/kmarchais/mmgpy",
-    link_logo: github
+    role: "author",
+    blurb: "Python bindings for the MMG remeshing library with PyVista glue.",
+    links: [{ label: "kmarchais/mmgpy", url: "https://github.com/kmarchais/mmgpy" }],
   },
   {
-    name: "Personal website",
-    description:
-      "This personal website to explore web development and experiment animated 3D scenes with Three.js.",
-    tags: [
-      {
-        name: "WebDev",
-        color: "blue-text-gradient",
-      },
-      {
-        name: "ReactJS",
-        color: "green-text-gradient",
-      },
-      {
-        name: "ThreeJS",
-        color: "pink-text-gradient",
-      },
-    ],
-    image: website,
-    source_code_link: "https://github.com/kmarchais/kmarchais.github.io",
-    link_logo: github
-  },
-];
-
-const demos: Demo[] = [
-  {
-    name: "Computational Geometry",
-    description: "Interactive TPMS and lattice structure visualization with real-time SDF ray marching.",
-    path: "/showcase/geometry",
-    tags: [
-      { name: "TPMS", color: "blue-text-gradient" },
-      { name: "Lattice", color: "green-text-gradient" },
-      { name: "WebGL", color: "pink-text-gradient" },
-    ],
+    name: "microgen",
+    role: "author",
+    blurb: "Parametric lattice + TPMS generator for additive manufacturing.",
+    links: [{ label: "3MAH/microgen", url: "https://github.com/3MAH/microgen" }],
   },
   {
-    name: "Physics Simulations",
-    description: "WebGPU-powered N-Body, granular (DEM), and fluid (SPH) simulations.",
-    path: "/showcase/simulations",
-    tags: [
-      { name: "WebGPU", color: "blue-text-gradient" },
-      { name: "Physics", color: "green-text-gradient" },
-      { name: "Compute", color: "pink-text-gradient" },
-    ],
-  },
-  {
-    name: "Periodic Chess",
-    description: "Chess game on a periodic board with 2D and 3D visualization modes.",
-    path: "/showcase/chess",
-    tags: [
-      { name: "Game", color: "blue-text-gradient" },
-      { name: "ThreeJS", color: "green-text-gradient" },
-      { name: "React", color: "pink-text-gradient" },
+    name: "blender extensions",
+    role: "author",
+    blurb: "Two Blender add-ons for parametric geometry and scientific mesh I/O.",
+    links: [],
+    children: [
+      {
+        name: "blender-tpms",
+        blurb: "Generate triply periodic minimal surfaces (Gyroid, Schwarz, Neovius, …) parametrically inside Blender.",
+        url: "https://github.com/kmarchais/blender-tpms",
+      },
+      {
+        name: "blender-vtk",
+        blurb: "Import and export VTK formats (.vtk, .vtu, .vtp, .pvd) so Blender can talk to scientific pipelines.",
+        url: "https://github.com/kmarchais/blender-vtk-importer-exporter",
+      },
     ],
   },
 ];
 
-export { services, technologies, projects, demos };
+export const social = {
+  github: "https://github.com/kmarchais",
+  linkedin: "https://www.linkedin.com/in/kevin-marchais/",
+};
+

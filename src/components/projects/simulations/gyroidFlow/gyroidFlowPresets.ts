@@ -19,7 +19,12 @@ export interface GyroidFlowPreset {
 }
 
 /**
- * Default preset: spawn particles uniformly in the upper spawn box
+ * Default preset: spawn particles on a regular 3D grid inside the upper
+ * spawn box so no two particles start overlapping. The grid spacing is
+ * chosen to fit `count` particles snugly; if the box is too tight, the
+ * spacing is reduced down to the no-overlap minimum (slightly larger than
+ * the particle diameter) and the count is honored even if it spills a
+ * little out of the box.
  */
 function generateSpawnBox(count: number, config: GyroidFlowConfig): GyroidFlowParticleData {
   const positions = new Float32Array(count * 4);
@@ -29,29 +34,58 @@ function generateSpawnBox(count: number, config: GyroidFlowConfig): GyroidFlowPa
   const yRange = config.spawnYMax - config.spawnYMin;
   const zRange = config.spawnZMax - config.spawnZMin;
 
-  const radiusMin = config.radiusMin ?? config.radius;
   const radiusMax = config.radiusMax ?? config.radius;
-  const radiusRange = radiusMax - radiusMin;
+  const minSpacing = 2.05 * radiusMax;
+
+  // Equal aspect grid: solve gridX*gridY*gridZ = count with grid sizes
+  // proportional to the box edges. Then pick a spacing that fits.
+  const volume = xRange * yRange * zRange;
+  const sideEst = Math.cbrt(volume / count);
+  let spacing = Math.max(sideEst, minSpacing);
+
+  let gridX = Math.max(1, Math.floor(xRange / spacing));
+  let gridY = Math.max(1, Math.floor(yRange / spacing));
+  let gridZ = Math.max(1, Math.floor(zRange / spacing));
+
+  // If the natural grid is too small, shrink the spacing iteratively until
+  // it holds all the particles or we hit the no-overlap minimum.
+  while (gridX * gridY * gridZ < count && spacing > minSpacing) {
+    spacing = Math.max(minSpacing, spacing * 0.92);
+    gridX = Math.max(1, Math.floor(xRange / spacing));
+    gridY = Math.max(1, Math.floor(yRange / spacing));
+    gridZ = Math.max(1, Math.floor(zRange / spacing));
+  }
+
+  // Center the grid inside the spawn box.
+  const usedX = (gridX - 1) * spacing;
+  const usedY = (gridY - 1) * spacing;
+  const usedZ = (gridZ - 1) * spacing;
+  const startX = config.spawnXMin + (xRange - usedX) * 0.5;
+  const startY = config.spawnYMin + Math.max(radiusMax, (yRange - usedY) * 0.5);
+  const startZ = config.spawnZMin + (zRange - usedZ) * 0.5;
+
+  // Tiny per-particle jitter so the lattice isn't perfectly rigid (helps the
+  // first contact frame settle without resonance).
+  const jitter = radiusMax * 0.06;
 
   for (let i = 0; i < count; i++) {
-    // Random position in spawn box
-    const x = config.spawnXMin + Math.random() * xRange;
-    const y = config.spawnYMin + Math.random() * yRange;
-    const z = config.spawnZMin + Math.random() * zRange;
+    const xi = i % gridX;
+    const zi = Math.floor(i / gridX) % gridZ;
+    const yi = Math.floor(i / (gridX * gridZ));
 
-    // Uniform distribution for particle radius
-    const particleRadius = radiusMin + Math.random() * radiusRange;
+    const x = startX + xi * spacing + (Math.random() - 0.5) * jitter;
+    const y = startY + yi * spacing + (Math.random() - 0.5) * jitter;
+    const z = startZ + zi * spacing + (Math.random() - 0.5) * jitter;
 
-    positions[i * 4] = x;
+    positions[i * 4]     = x;
     positions[i * 4 + 1] = y;
     positions[i * 4 + 2] = z;
-    positions[i * 4 + 3] = particleRadius; // Store radius in w component
+    positions[i * 4 + 3] = radiusMax;
 
-    // Initial velocity: small downward
-    velocities[i * 4] = (Math.random() - 0.5) * 0.5;
-    velocities[i * 4 + 1] = -Math.random() * 1.0;
-    velocities[i * 4 + 2] = (Math.random() - 0.5) * 0.5;
-    velocities[i * 4 + 3] = 0.5; // Neutral channel value (will be set in gyroid region)
+    velocities[i * 4]     = 0;
+    velocities[i * 4 + 1] = 0;
+    velocities[i * 4 + 2] = 0;
+    velocities[i * 4 + 3] = 0.5; // Neutral channel value (set in gyroid region)
   }
 
   return { positions, velocities };

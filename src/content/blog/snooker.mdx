@@ -1,0 +1,63 @@
+import SnookerGame from '@/components/projects/snooker/SnookerGame';
+
+export const frontmatter = {
+  title: 'the physics of snooker',
+  date: '2026-05-23',
+  excerpt: 'A playable snooker table backed by a real rigid-body solver. Adjustable cue power and impact point on the white ball. Walking through what controls spin, where it comes from, and why side English bends the ball.',
+  tags: ['snooker', 'billiards', 'rigid-body', 'physics'],
+  draft: true,
+  hidden: true,
+};
+
+## Why snooker is a great physics demo
+
+A snooker ball is a sphere on a felted slate. The physics is barely more
+than Newtonian mechanics, but every detail of the game depends on getting
+it right.
+
+The cue ball is struck **once**. Everything that follows is set by the
+angle, the speed, and the **point of impact on the white**: top spin,
+back spin, side English, the deflection of the cue ball off an object
+ball, the running side off a cushion.
+
+A struck ball doesn't just translate. It also spins, and the spin evolves
+separately from the translation under friction with the cloth. A ball
+can be moving forward but spinning backward, and that decides whether it
+stops dead, draws back, or keeps rolling.
+
+Ball-on-ball collisions are nearly elastic (restitution about 0.94).
+Cushion bounces are less so (about 0.6). Spin transfers across these
+contacts and it's what lets professional players bring the cue ball back
+to a specific spot after the strike.
+
+## The demo
+
+Drag the cursor on the table to aim. Use the power slider and the
+point-of-impact selector to pick where the cue strikes the white. Then
+click **Shoot**.
+
+<div className="not-prose my-10">
+  <SnookerGame embedded />
+</div>
+
+The simulation runs a real rigid-body integrator: linear plus angular
+velocity, sliding-to-rolling friction transition on the cloth, ball-ball
+collisions with restitution, cushion bounces. Pockets are detected by
+center proximity. Snooker rules are enforced: red-then-colour
+alternation, ascending colour sequence once reds are exhausted, fouls
+for cue-ball-pot, wrong-ball-first, and missed contact.
+
+## What's still to write
+
+- The state of a ball: position, velocity, angular velocity (3 spin axes)
+- Cue impact: how a single point of impact plus cue speed produces a
+  starting velocity and angular velocity on the white, including the
+  "squirt" (cue ball deflection from off-center contact)
+- The friction model: rolling vs sliding on cloth, and the time it takes
+  for a sliding ball to reach pure rolling
+- Ball-ball collision: normal impulse, tangential friction, spin transfer
+  (v1 simulation only models the normal impulse part)
+- Cushion bounce: angle of incidence is not the angle of reflection once
+  there's English on the ball
+- Numerical scheme: substepping when contacts cluster, avoiding
+  penetration drift

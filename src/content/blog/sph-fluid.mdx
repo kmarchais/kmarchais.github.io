@@ -1,0 +1,31 @@
+export const frontmatter = {
+  title: 'SPH fluid on the GPU',
+  date: '2026-05-23',
+  excerpt: 'Smoothed-particle hydrodynamics in real-time with WebGPU , weakly compressible fluids, density estimation, pressure forces, and the surface visualisation problem.',
+  tags: ['SPH', 'fluid', 'WebGPU', 'physics'],
+  draft: true,
+  hidden: true,
+};
+
+## SPH in two paragraphs
+
+Smoothed-particle hydrodynamics treats a fluid as a cloud of moving
+sample points. Each point carries mass; density at any location is the
+weighted sum of nearby particles' masses, where the weight is a smoothing
+kernel. From density you get pressure (equation of state), and from
+pressure gradients you get forces. Viscosity adds a velocity-diffusion
+term. Integrate. Repeat.
+
+It's a Lagrangian method, so free surfaces and splashes come for free ,
+no mesh, no level set, no interface tracking. The trade-off is noise:
+density estimates are noisy because particle distributions are.
+
+To be covered:
+
+- Weakly compressible vs incompressible SPH and why the former is fine
+  for visualisation
+- Cubic spline kernel and its derivative
+- Pressure with Tait's equation of state
+- Artificial viscosity vs proper viscous stress
+- Density-field marching cubes for surface rendering
+- Demo: dam break, droplet, double-dam break

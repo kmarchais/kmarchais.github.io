@@ -15,17 +15,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 20
-          cache: npm
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: bun install --frozen-lockfile
+
+      - name: Type check
+        run: bun run type-check
+
+      - name: Test
+        run: bun run test:run
 
       - name: Build
-        run: npm run build
+        run: bun run build
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4

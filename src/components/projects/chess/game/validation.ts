@@ -120,40 +120,57 @@ export function updateGameStatus(state: GameState): GameState {
   return newState;
 }
 
-// Check for insufficient material (simplified version)
+// Check for insufficient material.
+// Covers: K vs K, K+(B|N) vs K, KB vs KB with same-colored bishops,
+// KBB vs K with same-colored bishops, KNN vs K. KBN vs K is NOT a draw.
 function isInsufficientMaterial(board: (import('./types').Piece | null)[][]): boolean {
-  let whitePieces: import('./types').PieceType[] = [];
-  let blackPieces: import('./types').PieceType[] = [];
+  type PieceEntry = { type: import('./types').PieceType; squareColor: 0 | 1 };
+  const white: PieceEntry[] = [];
+  const black: PieceEntry[] = [];
 
   for (let rank = 0; rank < 8; rank++) {
     for (let file = 0; file < 8; file++) {
       const piece = board[rank][file];
-      if (piece) {
-        if (piece.color === 'white') {
-          whitePieces.push(piece.type);
-        } else {
-          blackPieces.push(piece.type);
-        }
-      }
+      if (!piece) continue;
+      const squareColor = ((file + rank) % 2) as 0 | 1;
+      (piece.color === 'white' ? white : black).push({ type: piece.type, squareColor });
     }
   }
 
-  // King vs King
-  if (whitePieces.length === 1 && blackPieces.length === 1) {
-    return true;
-  }
+  const nonKings = (side: PieceEntry[]) => side.filter((p) => p.type !== 'king');
+  const whiteRest = nonKings(white);
+  const blackRest = nonKings(black);
 
-  // King + Bishop vs King or King + Knight vs King
-  if (
-    (whitePieces.length === 1 &&
-      blackPieces.length === 2 &&
-      (blackPieces.includes('bishop') || blackPieces.includes('knight'))) ||
-    (blackPieces.length === 1 &&
-      whitePieces.length === 2 &&
-      (whitePieces.includes('bishop') || whitePieces.includes('knight')))
-  ) {
-    return true;
-  }
+  // Any heavy piece or pawn means mate is still possible.
+  const hasMatingMaterial = (side: PieceEntry[]) =>
+    side.some((p) => p.type === 'queen' || p.type === 'rook' || p.type === 'pawn');
+  if (hasMatingMaterial(whiteRest) || hasMatingMaterial(blackRest)) return false;
+
+  // K vs K
+  if (whiteRest.length === 0 && blackRest.length === 0) return true;
+
+  // K + minor vs K
+  if (whiteRest.length === 1 && blackRest.length === 0) return true;
+  if (blackRest.length === 1 && whiteRest.length === 0) return true;
+
+  // K + N + N vs K  (cannot be forced)
+  if (whiteRest.length === 2 && blackRest.length === 0 &&
+      whiteRest.every((p) => p.type === 'knight')) return true;
+  if (blackRest.length === 2 && whiteRest.length === 0 &&
+      blackRest.every((p) => p.type === 'knight')) return true;
+
+  // K + B + ... + B vs K with all bishops on one color
+  const allBishopsSameColor = (side: PieceEntry[]) =>
+    side.length > 0 &&
+    side.every((p) => p.type === 'bishop') &&
+    side.every((p) => p.squareColor === side[0].squareColor);
+  if (blackRest.length === 0 && allBishopsSameColor(whiteRest)) return true;
+  if (whiteRest.length === 0 && allBishopsSameColor(blackRest)) return true;
+
+  // KB vs KB with bishops on the same square color
+  if (whiteRest.length === 1 && blackRest.length === 1 &&
+      whiteRest[0].type === 'bishop' && blackRest[0].type === 'bishop' &&
+      whiteRest[0].squareColor === blackRest[0].squareColor) return true;
 
   return false;
 }

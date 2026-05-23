@@ -1,0 +1,42 @@
+import ComputationalGeometry from '@/components/projects/geometry/ComputationalGeometry';
+
+export const frontmatter = {
+  title: 'microgen',
+  date: '2026-05-23',
+  excerpt: 'A Python toolbox for parametric lattice and TPMS generation. Walking through how the field functions are built, what the rendering looks like, and what microgen does on top.',
+  tags: ['microgen', 'TPMS', 'lattice', 'computational-geometry'],
+  draft: true,
+  hidden: true,
+};
+
+## What microgen does
+
+[microgen](https://github.com/3MAH/microgen) is a Python library for generating
+parametric microstructures: triply periodic minimal surfaces (TPMS), strut
+lattices, foams, and other periodic geometries used in additive manufacturing
+research. It produces meshes you can hand to a slicer, a solver, or an FEM
+pipeline.
+
+This article will eventually walk through the underlying field functions, how
+the surfaces are parameterised, and what was added on top to make the library
+useful in practice. For now it's just the interactive viewer — a real-time
+WebGL implementation of the same surfaces, rendered with SDF ray marching
+straight in the browser.
+
+## Interactive viewer
+
+<div className="not-prose my-10">
+  <ComputationalGeometry embedded />
+</div>
+
+Switch between the **TPMS** tab and the **Lattice** tab in the top-right of
+the viewer. Drag to orbit; the side panel controls thickness, cell size,
+morphing, phase shifts, and rendering parameters.
+
+## To be written
+
+- How the SDF for each surface family is constructed
+- The morphing scheme between any two TPMS surfaces
+- How microgen wraps these into Python objects and meshes them
+- A walkthrough of generating a printable lattice
+- Notes on the parts of microgen I work on day-to-day

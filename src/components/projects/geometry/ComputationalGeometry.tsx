@@ -645,7 +645,14 @@ function getDefaultQuality(): QualityTier {
   return 'high';
 }
 
-const ComputationalGeometry = () => {
+interface ComputationalGeometryProps {
+  /** When true, omit the Navbar/Breadcrumb chrome and use the container's
+      height instead of min-h-screen, so the component can sit inside an
+      article or other layout. */
+  embedded?: boolean;
+}
+
+const ComputationalGeometry = ({ embedded = false }: ComputationalGeometryProps = {}) => {
   const [isMobile, setIsMobile] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('tpms');
   const [cameraKey, setCameraKey] = useState(0);
@@ -777,19 +784,25 @@ const ComputationalGeometry = () => {
   const currentLatticeInfo = LATTICE_TYPES.find((l) => l.displayName === latticeType);
 
   return (
-    <div className="min-h-screen bg-primary flex flex-col">
-      <Navbar />
+    <div className={
+      embedded
+        ? "relative w-full h-full min-h-[520px] bg-ink-800 border border-ink-600/60 flex flex-col overflow-hidden"
+        : "min-h-screen bg-primary flex flex-col"
+    }>
+      {!embedded && <Navbar />}
 
       {isMobile ? (
         <MobileFallback appName="Computational Geometry Studio" />
       ) : (
         <>
           {/* Header with title and tabs */}
-          <div className="pt-16 bg-surface-dark border-b border-surface">
-            <Breadcrumb items={[
-              { label: 'Home', path: '/' },
-              { label: 'Computational Geometry' },
-            ]} />
+          <div className={embedded ? "bg-surface-dark border-b border-surface" : "pt-16 bg-surface-dark border-b border-surface"}>
+            {!embedded && (
+              <Breadcrumb items={[
+                { label: 'Home', path: '/' },
+                { label: 'Computational Geometry' },
+              ]} />
+            )}
             <div className="flex items-center justify-between px-6 py-3">
               <div>
                 <h1 className="text-xl font-bold text-tertiary">Computational Geometry</h1>

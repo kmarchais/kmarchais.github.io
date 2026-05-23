@@ -1,13 +1,11 @@
-import { Navbar } from "../components";
-import { BlogList } from "../components/blog";
+import Navbar from "../components/Navbar";
+import BlogList from "../components/blog/BlogList";
 
 const Blog = () => {
   return (
-    <div className="bg-primary min-h-screen">
+    <div className="min-h-screen text-bone-200 grain">
       <Navbar />
-      <div className="pt-20">
-        <BlogList />
-      </div>
+      <BlogList />
     </div>
   );
 };

@@ -113,7 +113,7 @@ export default function ChessBoard2D({
   const renderSquare = (
     file: number,
     rank: number,
-    isGhost: boolean
+    _isGhost: boolean
   ) => {
     const wrappedFile = wrapFile(file);
     const square: Square = {

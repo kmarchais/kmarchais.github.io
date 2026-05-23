@@ -1,82 +1,43 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 
-// Mock assets
-vi.mock('@/assets', () => ({
-  logo: 'mock-logo.png',
-  menu: 'mock-menu.png',
-  close: 'mock-close.png',
-}));
-
-// Mock constants
-vi.mock('@/constants', () => ({
-  navLinks: [
-    { id: 'about', title: 'About' },
-    { id: 'projects', title: 'Projects' },
-    { id: 'blog', title: 'Blog', path: '/blog' },
-  ],
-}));
-
-// Mock styles
-vi.mock('@/styles', () => ({
-  styles: {
-    paddingX: 'px-6',
-  },
-}));
-
 describe('Navbar', () => {
-  const renderNavbar = () =>
+  const renderAt = (path: string) =>
     render(
-      <MemoryRouter>
+      <MemoryRouter initialEntries={[path]}>
         <Navbar />
       </MemoryRouter>
     );
 
-  it('renders the site name', () => {
-    renderNavbar();
-    expect(screen.getByText(/Kevin Marchais/)).toBeInTheDocument();
+  it('renders the KM monogram', () => {
+    renderAt('/');
+    expect(screen.getByText('KM')).toBeInTheDocument();
   });
 
-  it('renders navigation links', () => {
-    renderNavbar();
-    // Links appear in both desktop and mobile navs, use getAllByText
-    expect(screen.getAllByText('About').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Projects').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Blog').length).toBeGreaterThan(0);
+  it('renders Home and Blog navigation links', () => {
+    renderAt('/');
+    expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Blog' })).toBeInTheDocument();
   });
 
-  it('has a mobile menu toggle button', () => {
-    renderNavbar();
-    const toggleButton = screen.getByLabelText('Open menu');
-    expect(toggleButton).toBeInTheDocument();
-  });
-
-  it('toggles mobile menu on button click', () => {
-    renderNavbar();
-    const toggleButton = screen.getByLabelText('Open menu');
-
-    fireEvent.click(toggleButton);
-
-    expect(screen.getByLabelText('Close menu')).toBeInTheDocument();
-    expect(screen.getByRole('menu')).toBeVisible();
-  });
-
-  it('has correct ARIA attributes on the toggle button', () => {
-    renderNavbar();
-    const toggleButton = screen.getByLabelText('Open menu');
-
-    expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
-    expect(toggleButton).toHaveAttribute('aria-controls', 'mobile-menu');
-
-    fireEvent.click(toggleButton);
-    expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
-  });
-
-  it('has a link to the home page', () => {
-    renderNavbar();
-    const homeLink = screen.getByText(/Kevin Marchais/).closest('a');
+  it('monogram links to the home page', () => {
+    renderAt('/blog');
+    const homeLink = screen.getByLabelText(/Kevin Marchais/);
     expect(homeLink).toHaveAttribute('href', '/');
+  });
+
+  it('shows the route label when on the blog page', () => {
+    renderAt('/blog');
+    // The label is rendered next to the monogram with the same "Blog" text;
+    // confirm at least two "Blog" instances exist (label + nav link).
+    expect(screen.getAllByText(/Blog/).length).toBeGreaterThan(1);
+  });
+
+  it('hides the route label on the home page', () => {
+    renderAt('/');
+    // The slash separator after KM only renders when a label exists.
+    expect(screen.queryByText('/')).not.toBeInTheDocument();
   });
 });

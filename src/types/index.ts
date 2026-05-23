@@ -1,33 +1,24 @@
 import type { ComponentType } from 'react';
 
-export interface NavLink {
-  id: string;
-  title: string;
-  path?: string;
+export interface OpenSourceLink {
+  label: string;
+  url: string;
 }
 
-export interface Service {
-  title: string;
-  icon: string;
-}
-
-export interface Technology {
+export interface OpenSourceChild {
   name: string;
-  icon: string;
+  blurb: string;
+  url: string;
 }
 
-export interface ProjectTag {
+export interface OpenSourceProject {
   name: string;
-  color: string;
-}
-
-export interface Project {
-  name: string;
-  description: string;
-  tags: ProjectTag[];
-  image: string;
-  source_code_link: string;
-  link_logo: string;
+  role: 'author' | 'contributor';
+  blurb: string;
+  /** Primary link for non-expandable entries. Ignored if `children` is set. */
+  links: OpenSourceLink[];
+  /** When set, the row becomes expandable and reveals these sub-entries. */
+  children?: OpenSourceChild[];
 }
 
 export interface BlogPostFrontmatter {
@@ -36,13 +27,14 @@ export interface BlogPostFrontmatter {
   excerpt?: string;
   tags?: string[];
   slug?: string;
+  /** Mark the post as an in-progress draft. Surfaces a visible banner. */
+  draft?: boolean;
+  /** When true, the post is omitted from the public listing but remains
+      reachable via direct URL. Used for in-progress work. */
+  hidden?: boolean;
 }
 
 export interface BlogPost extends BlogPostFrontmatter {
   slug: string;
   Component: ComponentType;
 }
-
-import type { Variants } from 'framer-motion';
-
-export type MotionVariant = Variants;

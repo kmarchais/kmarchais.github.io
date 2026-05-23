@@ -2,39 +2,13 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 
-import { HomeNew } from "./components";
+import HomeNew from "./components/HomeNew";
 import ErrorBoundary from "./components/ErrorBoundary";
 import PageLoader from "./components/PageLoader";
-
-// Lazy load showcase pages (heavy Three.js/WebGPU components)
-const ComputationalGeometry = lazy(() => import("./components/projects/geometry/ComputationalGeometry"));
-const SimulationsGallery = lazy(() => import("./components/projects/simulations/SimulationsGallery"));
-const NBodySimulation = lazy(() =>
-  import("./components/projects/simulations/nbody/NBodySimulation").then(m => ({ default: m.NBodySimulation }))
-);
-const DEMSimulation = lazy(() =>
-  import("./components/projects/simulations/dem/DEMSimulation").then(m => ({ default: m.DEMSimulation }))
-);
-const SPHSimulation = lazy(() =>
-  import("./components/projects/simulations/sph/SPHSimulation").then(m => ({ default: m.SPHSimulation }))
-);
-const Chess = lazy(() => import("./components/projects/chess/Chess"));
 
 // Lazy load blog pages (MDX processing)
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
-
-// Lazy load legacy experimental pages
-const NBody = lazy(() => import("./components/projects/NBody"));
-const Particles = lazy(() => import("./components/projects/Particles"));
-const TPMS = lazy(() => import("./components/projects/TPMS"));
-const Vtk = lazy(() => import("./components/projects/Vtk"));
-const Example = lazy(() => import("./components/projects/example/Example"));
-const Collisions = lazy(() => import("./components/projects/Collisions"));
-const Shader = lazy(() => import("./components/projects/Shader"));
-const HelixViewer = lazy(() =>
-  import("./components/projects/simulations/helix/HelixViewer")
-);
 
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -57,34 +31,21 @@ const AnimatedRoutes = () => {
         <Route path="/blog" element={<PageTransition><Blog /></PageTransition>} />
         <Route path="/blog/:slug" element={<PageTransition><BlogPostPage /></PageTransition>} />
 
-        {/* Showcase - Interactive demos */}
-        <Route path="/showcase/geometry" element={<PageTransition><ComputationalGeometry /></PageTransition>} />
-        <Route path="/showcase/simulations" element={<PageTransition><SimulationsGallery /></PageTransition>} />
-        <Route path="/showcase/simulations/nbody" element={<PageTransition><NBodySimulation /></PageTransition>} />
-        <Route path="/showcase/simulations/granular" element={<PageTransition><DEMSimulation /></PageTransition>} />
-        <Route path="/showcase/simulations/fluid" element={<PageTransition><SPHSimulation /></PageTransition>} />
-        <Route path="/showcase/chess" element={<PageTransition><Chess /></PageTransition>} />
+        {/* Legacy showcase routes — point everything to the blog now that
+            interactive demos live inside articles. */}
+        <Route path="/showcase/geometry" element={<Navigate to="/blog/microgen" replace />} />
+        <Route path="/showcase/simulations" element={<Navigate to="/blog" replace />} />
+        <Route path="/showcase/simulations/nbody" element={<Navigate to="/blog" replace />} />
+        <Route path="/showcase/simulations/granular" element={<Navigate to="/blog" replace />} />
+        <Route path="/showcase/simulations/fluid" element={<Navigate to="/blog" replace />} />
+        <Route path="/showcase/chess" element={<Navigate to="/blog" replace />} />
+        <Route path="/tpms-gallery" element={<Navigate to="/blog/microgen" replace />} />
+        <Route path="/lattice-studio" element={<Navigate to="/blog/microgen" replace />} />
+        <Route path="/simulations" element={<Navigate to="/blog" replace />} />
+        <Route path="/Chess" element={<Navigate to="/blog" replace />} />
 
-        {/* Legacy routes - redirect to new paths */}
-        <Route path="/tpms-gallery" element={<Navigate to="/showcase/geometry" replace />} />
-        <Route path="/lattice-studio" element={<Navigate to="/showcase/geometry" replace />} />
-        <Route path="/showcase/tpms-gallery" element={<Navigate to="/showcase/geometry" replace />} />
-        <Route path="/showcase/lattice-studio" element={<Navigate to="/showcase/geometry" replace />} />
-        <Route path="/simulations" element={<Navigate to="/showcase/simulations" replace />} />
-        <Route path="/simulations/nbody" element={<Navigate to="/showcase/simulations/nbody" replace />} />
-        <Route path="/simulations/granular" element={<Navigate to="/showcase/simulations/granular" replace />} />
-        <Route path="/simulations/fluid" element={<Navigate to="/showcase/simulations/fluid" replace />} />
-        <Route path="/Chess" element={<Navigate to="/showcase/chess" replace />} />
-
-        {/* Legacy experimental pages */}
-        <Route path="/NBody" element={<PageTransition><NBody /></PageTransition>} />
-        <Route path="/Particles" element={<PageTransition><Particles /></PageTransition>} />
-        <Route path="/TPMS" element={<PageTransition><TPMS /></PageTransition>} />
-        <Route path="/Vtk" element={<PageTransition><Vtk /></PageTransition>} />
-        <Route path="/Example" element={<PageTransition><Example /></PageTransition>} />
-        <Route path="/Collisions" element={<PageTransition><Collisions /></PageTransition>} />
-        <Route path="/Shader" element={<PageTransition><Shader /></PageTransition>} />
-        <Route path="/Helix" element={<PageTransition><HelixViewer /></PageTransition>} />
+        {/* Catch-all */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AnimatePresence>
   );

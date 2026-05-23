@@ -1,0 +1,24 @@
+export const frontmatter = {
+  title: 'granular flow (DEM) on the GPU',
+  date: '2026-05-23',
+  excerpt: 'A Hertz-Mindlin discrete-element method solver running entirely on WebGPU. Spatial hashing for neighbour search, contact resolution, and notes on what makes powder simulations slow.',
+  tags: ['DEM', 'granular', 'WebGPU', 'physics'],
+  draft: true,
+  hidden: true,
+};
+
+## Why DEM is hard
+
+The discrete element method tracks every particle, every contact, every
+tangential history. It's the simulation method behind powder-bed metal 3D
+printing , the topic of my PhD , and it scales badly. A million-particle
+simulation can take days on a single CPU. Moving the contact resolution
+loop to a GPU is a big win.
+
+To be covered:
+
+- Hertz-Mindlin contact model: normal force, tangential history, damping
+- Spatial hashing on the GPU , the part that actually saves the day
+- Why the timestep collapses with stiffness (it's not just CFL)
+- The role of restitution and friction coefficients
+- A playable demo with a rotating drum and an avalanche scene

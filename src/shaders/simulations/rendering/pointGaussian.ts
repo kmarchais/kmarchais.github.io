@@ -21,7 +21,7 @@ uniform float uMaxSize;
 uniform float uVelocityScale;
 uniform int uColorMode; // 0 = solid, 1 = velocity magnitude, 2 = velocity direction (legacy)
 uniform int uFieldType; // 0 = velocity mag, 1 = radius, 5 = gyroid channel
-uniform int uColormap;  // 0 = viridis, 1 = plasma, 2 = turbo, 3 = coolwarm, 4 = rdylbu
+uniform int uColormap;  // 0 = viridis, 1 = plasma, 2 = turbo, 3 = coolwarm, 4 = rdylbu, 5 = editorial
 uniform float uFieldMin; // Dynamic min for colormap normalization
 uniform float uFieldMax; // Dynamic max for colormap normalization
 uniform bool uColormapReversed; // Reverse colormap direction
@@ -163,6 +163,20 @@ vec3 rdylbu(float t) {
   return mix(colors[i], colors[i + 1], f);
 }
 
+// Editorial diverging colormap matching the site palette:
+// cool slate-blue ↔ warm bone ↔ ember amber. Symmetric around 0.5.
+vec3 editorial(float t) {
+  vec3 cool = vec3(0.43, 0.64, 0.77);   // #6da3c4 (cool slate)
+  vec3 mid  = vec3(0.83, 0.86, 0.91);   // #d4dbe8 (warm bone)
+  vec3 warm = vec3(0.91, 0.69, 0.41);   // #e8b06a (ember)
+
+  if (t < 0.5) {
+    return mix(cool, mid, t * 2.0);
+  } else {
+    return mix(mid, warm, (t - 0.5) * 2.0);
+  }
+}
+
 // Apply colormap based on uniform selection
 vec3 applyColormap(float t, int colormap) {
   if (colormap == 0) return viridis(t);
@@ -170,6 +184,7 @@ vec3 applyColormap(float t, int colormap) {
   if (colormap == 2) return turbo(t);
   if (colormap == 3) return coolwarm(t);
   if (colormap == 4) return rdylbu(t);
+  if (colormap == 5) return editorial(t);
   return viridis(t); // default
 }
 

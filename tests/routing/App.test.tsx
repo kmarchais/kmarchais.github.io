@@ -31,29 +31,29 @@ describe('App routing structure', () => {
     expect(appSource).toContain('PageLoader');
   });
 
-  it('has all showcase routes', () => {
-    expect(appSource).toContain('/showcase/geometry');
-    expect(appSource).toContain('/showcase/simulations');
-    expect(appSource).toContain('/showcase/simulations/nbody');
-    expect(appSource).toContain('/showcase/simulations/granular');
-    expect(appSource).toContain('/showcase/simulations/fluid');
-    expect(appSource).toContain('/showcase/chess');
+  it('routes the home and blog as the primary surfaces', () => {
+    expect(appSource).toContain('path="/"');
+    expect(appSource).toContain('path="/blog"');
+    expect(appSource).toContain('path="/blog/:slug"');
   });
 
-  it('has legacy redirect routes', () => {
-    expect(appSource).toContain('Navigate to="/showcase/geometry" replace');
-    expect(appSource).toContain('Navigate to="/showcase/simulations" replace');
-    expect(appSource).toContain('Navigate to="/showcase/chess" replace');
+  it('redirects legacy showcase paths to the blog', () => {
+    // The /showcase/* routes were removed; they should now redirect.
+    expect(appSource).toContain('Navigate to="/blog/microgen"');
+    expect(appSource).toContain('Navigate to="/blog"');
   });
 
   it('HomeNew is not wrapped in PageTransition', () => {
-    // HomeNew has its own AnimatePresence, so it should be rendered directly
     expect(appSource).toContain('element={<HomeNew />}');
   });
 
-  it('uses lazy loading for heavy components', () => {
+  it('uses lazy loading for the blog pages', () => {
     expect(appSource).toContain('lazy(');
-    expect(appSource).toContain('import("./components/projects/geometry/ComputationalGeometry")');
-    expect(appSource).toContain('import("./components/projects/chess/Chess")');
+    expect(appSource).toContain('import("./pages/Blog")');
+    expect(appSource).toContain('import("./pages/BlogPostPage")');
+  });
+
+  it('has a catch-all route returning to home', () => {
+    expect(appSource).toContain('path="*"');
   });
 });

@@ -1,0 +1,30 @@
+export const frontmatter = {
+  title: 'periodic chess',
+  date: '2026-05-23',
+  excerpt: 'A chess variant on a periodic board, where files a and h wrap around. Walking through the rules, the engine, and a playable demo.',
+  tags: ['chess', 'game-engine', 'periodic-boundary'],
+  draft: true,
+  hidden: true,
+};
+
+## Why a periodic board
+
+Most chess variants change the pieces. Periodic chess changes the topology
+instead: the board is a cylinder. The a-file and the h-file are adjacent,
+so a rook on a1 attacks h1 directly, and a bishop slides off one side and
+re-enters on the other.
+
+That single change cascades into the rest of the game:
+
+- Knights gain new wrap-around squares
+- Discovered checks become harder to anticipate
+- Endgames where one side has only a king become winning for the other side
+  much more often, because the king can no longer hide in a corner
+
+## To be written
+
+- A short history of cylindrical chess and why people have tried it
+- The board representation and move generator
+- How check / checkmate / stalemate detection work on a wrapped board
+- The minimax+alpha-beta engine and what the difficulty levels actually do
+- Playable demo embedded below

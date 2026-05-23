@@ -33,6 +33,8 @@ uniform float uRotation;
 
 // Rendering
 uniform int uColormap;
+uniform int uColorMode; // 0 = SDF, 1 = Height
+uniform int uBlendMode; // 0 = None, 1 = Quadratic, 2 = Cubic, 3 = Exponential
 uniform bool uParallelProjection;
 uniform float uOrthoScale;
 
@@ -63,12 +65,18 @@ const float PI = 3.14159265359;
 // SDF Primitives
 // ============================================
 
-// Capsule (strut between two points)
-float sdCapsule(vec3 p, vec3 a, vec3 b, float r) {
+// Distance to line segment (skeleton distance, no radius)
+// This is the key primitive for smooth strut intersections
+float sdLine(vec3 p, vec3 a, vec3 b) {
   vec3 pa = p - a;
   vec3 ba = b - a;
   float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-  return length(pa - ba * h) - r;
+  return length(pa - ba * h);
+}
+
+// Capsule (strut between two points) - kept for compatibility
+float sdCapsule(vec3 p, vec3 a, vec3 b, float r) {
+  return sdLine(p, a, b) - r;
 }
 
 // Sphere (node)
@@ -76,11 +84,39 @@ float sdSphere(vec3 p, vec3 c, float r) {
   return length(p - c) - r;
 }
 
-// Smooth minimum (for blending nodes)
-float smin(float a, float b, float k) {
-  if (k <= 0.0) return min(a, b);
+// ============================================
+// Smooth Minimum Variants for Fillets
+// ============================================
+
+// Quadratic smooth min - classic smooth blend
+float smin_quadratic(float a, float b, float k) {
   float h = max(k - abs(a - b), 0.0) / k;
   return min(a, b) - h * h * k * 0.25;
+}
+
+// Cubic smooth min - tighter blending than quadratic
+float smin_cubic(float a, float b, float k) {
+  float h = max(k - abs(a - b), 0.0) / k;
+  return min(a, b) - h * h * h * k / 6.0;
+}
+
+// Exponential smooth min - tightest blending profile
+float smin_exp(float a, float b, float k) {
+  float res = exp(-a / k) + exp(-b / k);
+  return -k * log(max(res, 0.0001));
+}
+
+// Main smooth min function - selects based on blend mode
+float smin(float a, float b, float k) {
+  if (k <= 0.0001 || uBlendMode == 0) return min(a, b);
+
+  if (uBlendMode == 1) {
+    return smin_quadratic(a, b, k);
+  } else if (uBlendMode == 2) {
+    return smin_cubic(a, b, k);
+  } else {
+    return smin_exp(a, b, k);
+  }
 }
 
 // Box SDF for clipping
@@ -94,88 +130,89 @@ float sdBox(vec3 p, vec3 b) {
 // ============================================
 
 // Simple Cubic: struts along cube edges
-// Uses smin between struts for natural fillets at intersections
-float latticeCubic(vec3 p, float sr, float nr, float sm) {
+// sr = strut radius, sm = smooth blend factor for fillets
+float latticeCubic(vec3 p, float sr, float sm) {
   float d = 1e10;
 
-  // 12 edge struts with smooth blending
+  // 12 edge struts - skeleton distances combined with smin for smooth fillets
   // X-aligned edges
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 1.0), vec3(1.0, 0.0, 1.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), sr), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0)), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0)), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 1.0), vec3(1.0, 0.0, 1.0)), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0)), sm);
 
   // Y-aligned edges
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0), sr), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0)), sm);
+  d = smin(d, sdLine(p, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0)), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0)), sm);
+  d = smin(d, sdLine(p, vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0)), sm);
 
   // Z-aligned edges
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 1.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 1.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), sr), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0)), sm);
+  d = smin(d, sdLine(p, vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 1.0)), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 1.0)), sm);
+  d = smin(d, sdLine(p, vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0)), sm);
 
-  return d;
+  // Subtract strut radius to create the surface
+  return d - sr;
 }
 
 // BCC: Body-Centered Cubic - struts from corners to center
-float latticeBCC(vec3 p, float sr, float nr, float sm) {
+float latticeBCC(vec3 p, float sr, float sm) {
   float d = 1e10;
   vec3 center = vec3(0.5);
 
-  // 8 struts from corners to center with smooth blending
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 0.0), center, sr), sm);
-  d = smin(d, sdCapsule(p, vec3(1.0, 0.0, 0.0), center, sr), sm);
-  d = smin(d, sdCapsule(p, vec3(0.0, 1.0, 0.0), center, sr), sm);
-  d = smin(d, sdCapsule(p, vec3(1.0, 1.0, 0.0), center, sr), sm);
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 1.0), center, sr), sm);
-  d = smin(d, sdCapsule(p, vec3(1.0, 0.0, 1.0), center, sr), sm);
-  d = smin(d, sdCapsule(p, vec3(0.0, 1.0, 1.0), center, sr), sm);
-  d = smin(d, sdCapsule(p, vec3(1.0, 1.0, 1.0), center, sr), sm);
+  // 8 struts from corners to center - skeleton distances with smin for smooth fillets
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 0.0), center), sm);
+  d = smin(d, sdLine(p, vec3(1.0, 0.0, 0.0), center), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 1.0, 0.0), center), sm);
+  d = smin(d, sdLine(p, vec3(1.0, 1.0, 0.0), center), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 1.0), center), sm);
+  d = smin(d, sdLine(p, vec3(1.0, 0.0, 1.0), center), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 1.0, 1.0), center), sm);
+  d = smin(d, sdLine(p, vec3(1.0, 1.0, 1.0), center), sm);
 
-  return d;
+  return d - sr;
 }
 
 // FCC: Face-Centered Cubic - face diagonal struts
 // Different from Octet: struts along face diagonals + edges
-float latticeFCC(vec3 p, float sr, float nr, float sm) {
+float latticeFCC(vec3 p, float sr, float sm) {
   float d = 1e10;
 
-  // Cube edges (12 struts) - same as Simple Cubic
+  // Cube edges (12 struts) - skeleton distances with smin for smooth fillets
   // X-aligned
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 1.0), vec3(1.0, 0.0, 1.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), sr), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0)), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0)), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 1.0), vec3(1.0, 0.0, 1.0)), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0)), sm);
   // Y-aligned
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0), sr), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0)), sm);
+  d = smin(d, sdLine(p, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0)), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0)), sm);
+  d = smin(d, sdLine(p, vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0)), sm);
   // Z-aligned
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 1.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 1.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), sr), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0)), sm);
+  d = smin(d, sdLine(p, vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 1.0)), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 1.0)), sm);
+  d = smin(d, sdLine(p, vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0)), sm);
 
   // Face diagonals (6 struts - one diagonal per face)
   // XY faces (z=0 and z=1)
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0), sr), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0)), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0)), sm);
   // XZ faces (y=0 and y=1)
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 1.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), sr), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 1.0)), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0)), sm);
   // YZ faces (x=0 and x=1)
-  d = smin(d, sdCapsule(p, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 1.0), sr), sm);
-  d = smin(d, sdCapsule(p, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0), sr), sm);
+  d = smin(d, sdLine(p, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 1.0)), sm);
+  d = smin(d, sdLine(p, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0)), sm);
 
-  return d;
+  return d - sr;
 }
 
 // Octet Truss: tetrahedra + octahedra combination
-float latticeOctet(vec3 p, float sr, float nr, float sm) {
+float latticeOctet(vec3 p, float sr, float sm) {
   float d = 1e10;
 
   // Corners and face centers
@@ -195,52 +232,52 @@ float latticeOctet(vec3 p, float sr, float nr, float sm) {
   vec3 fz0 = vec3(0.5, 0.5, 0.0);
   vec3 fz1 = vec3(0.5, 0.5, 1.0);
 
-  // Struts from corners to adjacent face centers (24 total) with smooth blending
+  // Struts from corners to adjacent face centers (24 total) - with smin for smooth fillets
   // Corner (0,0,0)
-  d = smin(d, sdCapsule(p, c000, fx0, sr), sm);
-  d = smin(d, sdCapsule(p, c000, fy0, sr), sm);
-  d = smin(d, sdCapsule(p, c000, fz0, sr), sm);
+  d = smin(d, sdLine(p, c000, fx0), sm);
+  d = smin(d, sdLine(p, c000, fy0), sm);
+  d = smin(d, sdLine(p, c000, fz0), sm);
 
   // Corner (1,0,0)
-  d = smin(d, sdCapsule(p, c100, fx1, sr), sm);
-  d = smin(d, sdCapsule(p, c100, fy0, sr), sm);
-  d = smin(d, sdCapsule(p, c100, fz0, sr), sm);
+  d = smin(d, sdLine(p, c100, fx1), sm);
+  d = smin(d, sdLine(p, c100, fy0), sm);
+  d = smin(d, sdLine(p, c100, fz0), sm);
 
   // Corner (0,1,0)
-  d = smin(d, sdCapsule(p, c010, fx0, sr), sm);
-  d = smin(d, sdCapsule(p, c010, fy1, sr), sm);
-  d = smin(d, sdCapsule(p, c010, fz0, sr), sm);
+  d = smin(d, sdLine(p, c010, fx0), sm);
+  d = smin(d, sdLine(p, c010, fy1), sm);
+  d = smin(d, sdLine(p, c010, fz0), sm);
 
   // Corner (1,1,0)
-  d = smin(d, sdCapsule(p, c110, fx1, sr), sm);
-  d = smin(d, sdCapsule(p, c110, fy1, sr), sm);
-  d = smin(d, sdCapsule(p, c110, fz0, sr), sm);
+  d = smin(d, sdLine(p, c110, fx1), sm);
+  d = smin(d, sdLine(p, c110, fy1), sm);
+  d = smin(d, sdLine(p, c110, fz0), sm);
 
   // Corner (0,0,1)
-  d = smin(d, sdCapsule(p, c001, fx0, sr), sm);
-  d = smin(d, sdCapsule(p, c001, fy0, sr), sm);
-  d = smin(d, sdCapsule(p, c001, fz1, sr), sm);
+  d = smin(d, sdLine(p, c001, fx0), sm);
+  d = smin(d, sdLine(p, c001, fy0), sm);
+  d = smin(d, sdLine(p, c001, fz1), sm);
 
   // Corner (1,0,1)
-  d = smin(d, sdCapsule(p, c101, fx1, sr), sm);
-  d = smin(d, sdCapsule(p, c101, fy0, sr), sm);
-  d = smin(d, sdCapsule(p, c101, fz1, sr), sm);
+  d = smin(d, sdLine(p, c101, fx1), sm);
+  d = smin(d, sdLine(p, c101, fy0), sm);
+  d = smin(d, sdLine(p, c101, fz1), sm);
 
   // Corner (0,1,1)
-  d = smin(d, sdCapsule(p, c011, fx0, sr), sm);
-  d = smin(d, sdCapsule(p, c011, fy1, sr), sm);
-  d = smin(d, sdCapsule(p, c011, fz1, sr), sm);
+  d = smin(d, sdLine(p, c011, fx0), sm);
+  d = smin(d, sdLine(p, c011, fy1), sm);
+  d = smin(d, sdLine(p, c011, fz1), sm);
 
   // Corner (1,1,1)
-  d = smin(d, sdCapsule(p, c111, fx1, sr), sm);
-  d = smin(d, sdCapsule(p, c111, fy1, sr), sm);
-  d = smin(d, sdCapsule(p, c111, fz1, sr), sm);
+  d = smin(d, sdLine(p, c111, fx1), sm);
+  d = smin(d, sdLine(p, c111, fy1), sm);
+  d = smin(d, sdLine(p, c111, fz1), sm);
 
-  return d;
+  return d - sr;
 }
 
 // Diamond Cubic: tetrahedral coordination (each atom bonds to 4 neighbors)
-float latticeDiamond(vec3 p, float sr, float nr, float sm) {
+float latticeDiamond(vec3 p, float sr, float sm) {
   float d = 1e10;
 
   // Diamond structure: 8 atoms per unit cell
@@ -259,36 +296,36 @@ float latticeDiamond(vec3 p, float sr, float nr, float sm) {
   vec3 b3 = vec3(0.75, 0.25, 0.75);
   vec3 b4 = vec3(0.75, 0.75, 0.25);
 
-  // Each 'b' atom bonds to 4 'a' atoms (tetrahedral) with smooth blending
+  // Each 'b' atom bonds to 4 'a' atoms (tetrahedral) - with smin for smooth fillets
   // b1 (0.25, 0.25, 0.25) bonds to: a1, a2, a3, a4
-  d = smin(d, sdCapsule(p, b1, a1, sr), sm);
-  d = smin(d, sdCapsule(p, b1, a2, sr), sm);
-  d = smin(d, sdCapsule(p, b1, a3, sr), sm);
-  d = smin(d, sdCapsule(p, b1, a4, sr), sm);
+  d = smin(d, sdLine(p, b1, a1), sm);
+  d = smin(d, sdLine(p, b1, a2), sm);
+  d = smin(d, sdLine(p, b1, a3), sm);
+  d = smin(d, sdLine(p, b1, a4), sm);
 
   // b2 (0.25, 0.75, 0.75) bonds to: a2, and 3 in neighboring cells
-  d = smin(d, sdCapsule(p, b2, a2, sr), sm);
-  d = smin(d, sdCapsule(p, b2, vec3(0.0, 1.0, 1.0), sr), sm);  // a1 + (0,1,1)
-  d = smin(d, sdCapsule(p, b2, vec3(0.5, 0.5, 1.0), sr), sm);  // a4 + (0,0,1)
-  d = smin(d, sdCapsule(p, b2, vec3(0.5, 1.0, 0.5), sr), sm);  // a3 + (0,1,0)
+  d = smin(d, sdLine(p, b2, a2), sm);
+  d = smin(d, sdLine(p, b2, vec3(0.0, 1.0, 1.0)), sm);  // a1 + (0,1,1)
+  d = smin(d, sdLine(p, b2, vec3(0.5, 0.5, 1.0)), sm);  // a4 + (0,0,1)
+  d = smin(d, sdLine(p, b2, vec3(0.5, 1.0, 0.5)), sm);  // a3 + (0,1,0)
 
   // b3 (0.75, 0.25, 0.75) bonds to: a3, and 3 in neighboring cells
-  d = smin(d, sdCapsule(p, b3, a3, sr), sm);
-  d = smin(d, sdCapsule(p, b3, vec3(1.0, 0.0, 1.0), sr), sm);  // a1 + (1,0,1)
-  d = smin(d, sdCapsule(p, b3, vec3(1.0, 0.5, 0.5), sr), sm);  // a2 + (1,0,0)
-  d = smin(d, sdCapsule(p, b3, vec3(0.5, 0.5, 1.0), sr), sm);  // a4 + (0,0,1)
+  d = smin(d, sdLine(p, b3, a3), sm);
+  d = smin(d, sdLine(p, b3, vec3(1.0, 0.0, 1.0)), sm);  // a1 + (1,0,1)
+  d = smin(d, sdLine(p, b3, vec3(1.0, 0.5, 0.5)), sm);  // a2 + (1,0,0)
+  d = smin(d, sdLine(p, b3, vec3(0.5, 0.5, 1.0)), sm);  // a4 + (0,0,1)
 
   // b4 (0.75, 0.75, 0.25) bonds to: a4, and 3 in neighboring cells
-  d = smin(d, sdCapsule(p, b4, a4, sr), sm);
-  d = smin(d, sdCapsule(p, b4, vec3(1.0, 1.0, 0.0), sr), sm);  // a1 + (1,1,0)
-  d = smin(d, sdCapsule(p, b4, vec3(1.0, 0.5, 0.5), sr), sm);  // a2 + (1,0,0)
-  d = smin(d, sdCapsule(p, b4, vec3(0.5, 1.0, 0.5), sr), sm);  // a3 + (0,1,0)
+  d = smin(d, sdLine(p, b4, a4), sm);
+  d = smin(d, sdLine(p, b4, vec3(1.0, 1.0, 0.0)), sm);  // a1 + (1,1,0)
+  d = smin(d, sdLine(p, b4, vec3(1.0, 0.5, 0.5)), sm);  // a2 + (1,0,0)
+  d = smin(d, sdLine(p, b4, vec3(0.5, 1.0, 0.5)), sm);  // a3 + (0,1,0)
 
-  return d;
+  return d - sr;
 }
 
 // Kelvin Cell (Tetrakaidecahedron): space-filling with 14 faces
-float latticeKelvin(vec3 p, float sr, float nr, float sm) {
+float latticeKelvin(vec3 p, float sr, float sm) {
   float d = 1e10;
 
   // Kelvin cell vertices (scaled to unit cell)
@@ -327,56 +364,56 @@ float latticeKelvin(vec3 p, float sr, float nr, float sm) {
   vec3 v23 = vec3(1.0-a, b, 1.0);
   vec3 v24 = vec3(b, 1.0-a, 1.0);
 
-  // Square edges on X faces
-  d = smin(d, sdCapsule(p, v1, v2, sr), sm);
-  d = smin(d, sdCapsule(p, v2, v3, sr), sm);
-  d = smin(d, sdCapsule(p, v3, v4, sr), sm);
-  d = smin(d, sdCapsule(p, v4, v1, sr), sm);
+  // Square edges on X faces - with smin for smooth fillets
+  d = smin(d, sdLine(p, v1, v2), sm);
+  d = smin(d, sdLine(p, v2, v3), sm);
+  d = smin(d, sdLine(p, v3, v4), sm);
+  d = smin(d, sdLine(p, v4, v1), sm);
 
-  d = smin(d, sdCapsule(p, v5, v6, sr), sm);
-  d = smin(d, sdCapsule(p, v6, v7, sr), sm);
-  d = smin(d, sdCapsule(p, v7, v8, sr), sm);
-  d = smin(d, sdCapsule(p, v8, v5, sr), sm);
+  d = smin(d, sdLine(p, v5, v6), sm);
+  d = smin(d, sdLine(p, v6, v7), sm);
+  d = smin(d, sdLine(p, v7, v8), sm);
+  d = smin(d, sdLine(p, v8, v5), sm);
 
   // Square edges on Y faces
-  d = smin(d, sdCapsule(p, v9, v10, sr), sm);
-  d = smin(d, sdCapsule(p, v10, v11, sr), sm);
-  d = smin(d, sdCapsule(p, v11, v12, sr), sm);
-  d = smin(d, sdCapsule(p, v12, v9, sr), sm);
+  d = smin(d, sdLine(p, v9, v10), sm);
+  d = smin(d, sdLine(p, v10, v11), sm);
+  d = smin(d, sdLine(p, v11, v12), sm);
+  d = smin(d, sdLine(p, v12, v9), sm);
 
-  d = smin(d, sdCapsule(p, v13, v14, sr), sm);
-  d = smin(d, sdCapsule(p, v14, v15, sr), sm);
-  d = smin(d, sdCapsule(p, v15, v16, sr), sm);
-  d = smin(d, sdCapsule(p, v16, v13, sr), sm);
+  d = smin(d, sdLine(p, v13, v14), sm);
+  d = smin(d, sdLine(p, v14, v15), sm);
+  d = smin(d, sdLine(p, v15, v16), sm);
+  d = smin(d, sdLine(p, v16, v13), sm);
 
   // Square edges on Z faces
-  d = smin(d, sdCapsule(p, v17, v18, sr), sm);
-  d = smin(d, sdCapsule(p, v18, v19, sr), sm);
-  d = smin(d, sdCapsule(p, v19, v20, sr), sm);
-  d = smin(d, sdCapsule(p, v20, v17, sr), sm);
+  d = smin(d, sdLine(p, v17, v18), sm);
+  d = smin(d, sdLine(p, v18, v19), sm);
+  d = smin(d, sdLine(p, v19, v20), sm);
+  d = smin(d, sdLine(p, v20, v17), sm);
 
-  d = smin(d, sdCapsule(p, v21, v22, sr), sm);
-  d = smin(d, sdCapsule(p, v22, v23, sr), sm);
-  d = smin(d, sdCapsule(p, v23, v24, sr), sm);
-  d = smin(d, sdCapsule(p, v24, v21, sr), sm);
+  d = smin(d, sdLine(p, v21, v22), sm);
+  d = smin(d, sdLine(p, v22, v23), sm);
+  d = smin(d, sdLine(p, v23, v24), sm);
+  d = smin(d, sdLine(p, v24, v21), sm);
 
   // Hexagonal face edges (connecting squares)
-  d = smin(d, sdCapsule(p, v1, v9, sr), sm);
-  d = smin(d, sdCapsule(p, v2, v17, sr), sm);
-  d = smin(d, sdCapsule(p, v4, v21, sr), sm);
-  d = smin(d, sdCapsule(p, v3, v13, sr), sm);
+  d = smin(d, sdLine(p, v1, v9), sm);
+  d = smin(d, sdLine(p, v2, v17), sm);
+  d = smin(d, sdLine(p, v4, v21), sm);
+  d = smin(d, sdLine(p, v3, v13), sm);
 
-  d = smin(d, sdCapsule(p, v5, v11, sr), sm);
-  d = smin(d, sdCapsule(p, v6, v19, sr), sm);
-  d = smin(d, sdCapsule(p, v8, v23, sr), sm);
-  d = smin(d, sdCapsule(p, v7, v15, sr), sm);
+  d = smin(d, sdLine(p, v5, v11), sm);
+  d = smin(d, sdLine(p, v6, v19), sm);
+  d = smin(d, sdLine(p, v8, v23), sm);
+  d = smin(d, sdLine(p, v7, v15), sm);
 
-  d = smin(d, sdCapsule(p, v10, v18, sr), sm);
-  d = smin(d, sdCapsule(p, v12, v22, sr), sm);
-  d = smin(d, sdCapsule(p, v14, v20, sr), sm);
-  d = smin(d, sdCapsule(p, v16, v24, sr), sm);
+  d = smin(d, sdLine(p, v10, v18), sm);
+  d = smin(d, sdLine(p, v12, v22), sm);
+  d = smin(d, sdLine(p, v14, v20), sm);
+  d = smin(d, sdLine(p, v16, v24), sm);
 
-  return d;
+  return d - sr;
 }
 
 // ============================================
@@ -384,55 +421,58 @@ float latticeKelvin(vec3 p, float sr, float nr, float sm) {
 // ============================================
 
 // Evaluate single cell lattice SDF
+// Passes smoothing parameter for smooth fillets at strut intersections
 float evalCell(vec3 cellP) {
   if (uLatticeType == 0) {
-    return latticeCubic(cellP, uStrutRadius, uNodeRadius, uNodeSmoothing);
+    return latticeCubic(cellP, uStrutRadius, uNodeSmoothing);
   } else if (uLatticeType == 1) {
-    return latticeBCC(cellP, uStrutRadius, uNodeRadius, uNodeSmoothing);
+    return latticeBCC(cellP, uStrutRadius, uNodeSmoothing);
   } else if (uLatticeType == 2) {
-    return latticeFCC(cellP, uStrutRadius, uNodeRadius, uNodeSmoothing);
+    return latticeFCC(cellP, uStrutRadius, uNodeSmoothing);
   } else if (uLatticeType == 3) {
-    return latticeOctet(cellP, uStrutRadius, uNodeRadius, uNodeSmoothing);
+    return latticeOctet(cellP, uStrutRadius, uNodeSmoothing);
   } else if (uLatticeType == 4) {
-    return latticeDiamond(cellP, uStrutRadius, uNodeRadius, uNodeSmoothing);
+    return latticeDiamond(cellP, uStrutRadius, uNodeSmoothing);
   } else {
-    return latticeKelvin(cellP, uStrutRadius, uNodeRadius, uNodeSmoothing);
+    return latticeKelvin(cellP, uStrutRadius, uNodeSmoothing);
   }
 }
 
 float evaluateLattice(vec3 p) {
+  // Offset to center the lattice at origin
+  // This ensures unit cells are centered, not starting at origin
+  vec3 offset = uRepeatCount * uCellSize * 0.5;
+  vec3 centered = p + offset;
+
   // Scale to cell coordinates
-  vec3 scaled = p / uCellSize;
+  vec3 scaled = centered / uCellSize;
 
   // Get cell index and local position
   vec3 cellIdx = floor(scaled);
   vec3 localP = scaled - cellIdx;
 
-  // Check if we're within the repeat bounds
-  vec3 halfCount = uRepeatCount * 0.5;
-
   float d = 1e10;
 
   // Evaluate current cell and neighbors to handle boundary struts
-  // Use smin to smoothly blend struts across cell boundaries
   for (int dx = -1; dx <= 1; dx++) {
     for (int dy = -1; dy <= 1; dy++) {
       for (int dz = -1; dz <= 1; dz++) {
-        vec3 offset = vec3(float(dx), float(dy), float(dz));
-        vec3 neighborIdx = cellIdx + offset;
+        vec3 cellOffset = vec3(float(dx), float(dy), float(dz));
+        vec3 neighborIdx = cellIdx + cellOffset;
 
-        // Check if neighbor cell is within bounds
-        if (all(greaterThanEqual(neighborIdx, -halfCount)) &&
-            all(lessThan(neighborIdx, halfCount))) {
+        // Check if neighbor cell is within bounds [0, repeatCount)
+        if (all(greaterThanEqual(neighborIdx, vec3(0.0))) &&
+            all(lessThan(neighborIdx, uRepeatCount))) {
           // Evaluate lattice at offset position
-          vec3 evalP = localP - offset;
-          d = smin(d, evalCell(evalP), uNodeSmoothing);
+          vec3 evalP = localP - cellOffset;
+          d = min(d, evalCell(evalP));
         }
       }
     }
   }
 
   // Scale distance by cell size
+  // Note: smooth fillets are created by smin inside lattice functions
   return d * uCellSize;
 }
 
@@ -608,10 +648,19 @@ vec3 shade(vec3 p, vec3 n, vec3 rd) {
   // AO
   float ao = calcAO(p, n);
 
-  // Height-based color
-  vec3 halfExtent = uRepeatCount * uCellSize * 0.5;
-  float heightNorm = (p.y + halfExtent.y) / (2.0 * halfExtent.y);
-  vec3 baseColor = getColormap(heightNorm);
+  // Color value based on mode
+  float colorValue;
+  if (uColorMode == 0) {
+    // SDF-based color: use distance from surface
+    float d = evaluateLattice(p);
+    // Normalize SDF to [0, 1] range (strut radius as reference)
+    colorValue = clamp(0.5 + d / (uStrutRadius * 4.0), 0.0, 1.0);
+  } else {
+    // Height-based color
+    vec3 halfExtent = uRepeatCount * uCellSize * 0.5;
+    colorValue = (p.y + halfExtent.y) / (2.0 * halfExtent.y);
+  }
+  vec3 baseColor = getColormap(colorValue);
 
   // Combine
   vec3 color = baseColor * (uAmbient + diffuse * uLightIntensity) * ao;
@@ -691,3 +740,21 @@ export const COLORMAP_INDEX: Record<string, number> = {
 };
 
 export const COLORMAP_NAMES = Object.keys(COLORMAP_INDEX);
+
+// Color mode index mapping
+export const COLOR_MODE_INDEX: Record<string, number> = {
+  'SDF': 0,
+  'Height': 1,
+};
+
+export const COLOR_MODE_NAMES = Object.keys(COLOR_MODE_INDEX);
+
+// Blend mode index mapping for fillet types
+export const BLEND_MODE_INDEX: Record<string, number> = {
+  'None (Sharp)': 0,
+  'Quadratic': 1,
+  'Cubic': 2,
+  'Exponential': 3,
+};
+
+export const BLEND_MODE_NAMES = Object.keys(BLEND_MODE_INDEX);

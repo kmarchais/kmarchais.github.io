@@ -1,0 +1,25 @@
+export const frontmatter = {
+  title: 'n-body on the GPU',
+  date: '2026-05-23',
+  excerpt: 'Direct-summation N-body gravity at interactive frame rates with WebGPU compute. Notes on the integrator, the workgroup tiling, and what a few thousand bodies look like in real time.',
+  tags: ['N-body', 'WebGPU', 'compute', 'physics'],
+  draft: true,
+  hidden: true,
+};
+
+## Direct summation, in your browser
+
+The naïve O(N²) N-body solver is embarrassingly parallel: every body's
+acceleration is a sum over every other body. With WebGPU compute, each
+workgroup loads a tile of source bodies into shared memory, then every
+thread in the workgroup accumulates contributions from that tile against
+its assigned target body. Repeat for every tile and you have the full
+force sum.
+
+This article will walk through:
+
+- The leapfrog integrator and why it's symplectic
+- Plummer softening so close encounters don't blow up
+- Workgroup tiling and the storage-barrier dance
+- Plummer / cold-collapse / cube initial conditions
+- A playable demo with sliders for G, softening, and damping

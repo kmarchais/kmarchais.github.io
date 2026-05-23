@@ -61,9 +61,17 @@ export interface GyroidFlowConfig {
   spawnZMax: number;
   respawnYThreshold: number;
   topCapEnabled: boolean;
-  geometryType: number;        // 0 = hourglass, 1 = gyroid
+  geometryType: number;        // 0 = hourglass, 1 = gyroid, 2 = helix+stadium
   gyroidScale: number;         // Scale factor for gyroid (2π for unit cell)
   gyroidThreshold: number;     // SDF threshold for collision
+  // Helix+Stadium parameters (geometryType = 2)
+  helixPitch?: number;
+  helixRadius?: number;
+  helixShaftRadius?: number;
+  helixThickness?: number;
+  stadiumMajorRadius?: number;
+  stadiumStraightLength?: number;
+  stadiumTubeRadius?: number;
   preset: string;
   autoStart?: boolean;
 }
@@ -160,19 +168,25 @@ const DEFAULT_CONFIG: GyroidFlowConfig = {
 
 /**
  * Calculate grid dimensions for spatial hashing
+ * For gyroid mode: no X/Z padding so cell wrapping works correctly
  */
 function calculateGridDimensions(
   config: GyroidFlowConfig,
   cellSize: number
 ): [number, number, number] {
-  const xRange = config.spawnXMax - config.spawnXMin;
-  const yRange = config.spawnYMax - config.respawnYThreshold;
-  const zRange = config.spawnZMax - config.spawnZMin;
+  const isGyroid = config.geometryType === 1;
+  const boxHalfSize = (config.hourglassYMax - config.hourglassYMin) / 6.0;
+
+  // For gyroid: use full periodic domain with NO padding in X/Z
+  // For hourglass: use spawn bounds with padding
+  const xRange = isGyroid ? boxHalfSize * 2 : (config.spawnXMax - config.spawnXMin);
+  const yRange = config.hourglassYMax - config.hourglassYMin;
+  const zRange = isGyroid ? boxHalfSize * 2 : (config.spawnZMax - config.spawnZMin);
 
   return [
-    Math.ceil(xRange / cellSize) + 2,
-    Math.ceil(yRange / cellSize) + 2,
-    Math.ceil(zRange / cellSize) + 2,
+    isGyroid ? Math.ceil(xRange / cellSize) : Math.ceil(xRange / cellSize) + 2,
+    Math.ceil(yRange / cellSize) + 2,  // Y always has padding
+    isGyroid ? Math.ceil(zRange / cellSize) : Math.ceil(zRange / cellSize) + 2,
   ];
 }
 
@@ -254,6 +268,14 @@ export function useGyroidFlowSimulation(
       geometryType: config.geometryType,
       gyroidScale: config.gyroidScale,
       gyroidThreshold: config.gyroidThreshold,
+      // Helix+Stadium parameters
+      helixPitch: config.helixPitch ?? 0.35,
+      helixRadius: config.helixRadius ?? 0.4,
+      helixShaftRadius: config.helixShaftRadius ?? 0.08,
+      helixThickness: config.helixThickness ?? 0.05,
+      stadiumMajorRadius: config.stadiumMajorRadius ?? 0.5,
+      stadiumStraightLength: config.stadiumStraightLength ?? 1.0,
+      stadiumTubeRadius: config.stadiumTubeRadius ?? 0.5,
     });
   }, []);
 
@@ -308,10 +330,13 @@ export function useGyroidFlowSimulation(
         // Calculate grid configuration
         const cellSize = config.radius * 2;
         const gridDimensions = calculateGridDimensions(config, cellSize);
+        const isGyroid = config.geometryType === 1;
+        const boxHalfSize = (config.hourglassYMax - config.hourglassYMin) / 6.0;
         const gridMin: [number, number, number] = [
-          config.spawnXMin - cellSize,
-          config.respawnYThreshold - cellSize,
-          config.spawnZMin - cellSize,
+          // For gyroid: no X/Z padding, grid starts exactly at -boxHalfSize
+          isGyroid ? -boxHalfSize : config.spawnXMin - cellSize,
+          config.hourglassYMin - cellSize,  // Y always has padding
+          isGyroid ? -boxHalfSize : config.spawnZMin - cellSize,
         ];
 
         refs.current.gridDimensions = gridDimensions;
@@ -485,15 +510,19 @@ export function useGyroidFlowSimulation(
       isMountedRef.current = false;
       if (refs.current.buffers) {
         destroySimulationBuffers(refs.current.buffers);
+        refs.current.buffers = null;
       }
       if (refs.current.hashBuffers) {
         destroySpatialHashBuffers(refs.current.hashBuffers);
+        refs.current.hashBuffers = null;
       }
       if (refs.current.hashParams) {
         refs.current.hashParams.destroy();
+        refs.current.hashParams = null;
       }
       if (refs.current.device) {
         refs.current.device.destroy();
+        refs.current.device = null;
       }
     };
   }, [createParamsData, createHashParamsData]);

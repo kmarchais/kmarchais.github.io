@@ -1,1 +1,1 @@
-export { default as LatticeGallery } from './LatticeGallery';
+export * from './LatticeShader';
