@@ -16,6 +16,12 @@ export const openSource: OpenSourceProject[] = [
     links: [{ label: "3MAH/microgen", url: "https://github.com/3MAH/microgen" }],
   },
   {
+    name: "pyvista-blender",
+    role: "author",
+    blurb: "Render PyVista plotter scenes through Blender (bpy) for photoreal output.",
+    links: [{ label: "kmarchais/pyvista-blender", url: "https://github.com/kmarchais/pyvista-blender" }],
+  },
+  {
     name: "blender extensions",
     role: "author",
     blurb: "Two Blender add-ons for parametric geometry and scientific mesh I/O.",
