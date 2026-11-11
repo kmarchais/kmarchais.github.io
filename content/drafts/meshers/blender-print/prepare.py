@@ -9,8 +9,17 @@ sys.path.insert(0,str(Path.home()/'bin'))
 from pueue_progress import Job
 
 def save(mesh,path):
+    # Blender stores coordinates as Float32. Snap roundoff at cube cuts and
+    # merge at that precision before checking the topology that it will draw.
+    points=np.asarray(mesh.points,dtype=np.float32).copy()
+    for axis in range(3):
+        for side in [-.5,.5]:points[np.abs(points[:,axis]-side)<1e-7,axis]=side
+    mesh=mesh.copy();mesh.points=points
+    mesh=mesh.clean(tolerance=1e-7,absolute=True).triangulate(pass_verts=False,pass_lines=False)
     mesh=mesh.triangulate().clean(tolerance=0,absolute=True)
     faces=mesh.faces.reshape(-1,4)[:,1:]
+    p=mesh.points.astype(float)
+    assert np.all(np.linalg.norm(np.cross(p[faces[:,1]]-p[faces[:,0]],p[faces[:,2]]-p[faces[:,0]]),axis=1)>0)
     edges=np.sort(np.concatenate([faces[:,[0,1]],faces[:,[1,2]],faces[:,[2,0]]]),axis=1)
     counts=np.unique(edges,axis=0,return_counts=True)[1]
     assert len(faces)>0 and np.all(counts==2),(path.name,np.unique(counts,return_counts=True))
@@ -33,48 +42,27 @@ def main():
         return u.extract_surface(nonlinear_subdivision=2,algorithm='dataset_surface').clean(tolerance=1e-9,absolute=True)
     # Morphing fields can pass through thin/singular configurations. Their
     # closed display boundaries are illustrations, never FE admission results.
-    axis=np.linspace(-.5-1/72,.5+1/72,76)
+    axis=np.linspace(-.609375,.609375,157)
     x,y,z=np.meshgrid(axis,axis,axis,indexing='ij')
-    fs=fields(x,y,z);box=np.maximum.reduce([np.abs(x),np.abs(y),np.abs(z)])-.5
+    fs=fields(x,y,z);box=np.maximum.reduce([np.abs(x),np.abs(y),np.abs(z)])-.58
     image=pv.ImageData(dimensions=x.shape,spacing=(axis[1]-axis[0],)*3,origin=(axis[0],)*3)
-    def project_walls(mesh,weights):
-        # Project the curved boundary while keeping its box-face constraints.
-        # This is display geometry, separate from the frozen comparison mesh.
-        mesh=mesh.triangulate().clean(tolerance=0,absolute=True).triangulate(pass_verts=False,pass_lines=False)
-        points=np.asarray(mesh.points,dtype=float).copy();original=points.copy();faces=mesh.faces.reshape(-1,4)[:,1:]
-        caps=np.zeros((len(points),3),bool);cap_faces=np.zeros(len(faces),bool)
-        for axis_id in range(3):
-            for side in [-.5,.5]:
-                at=np.all(np.abs(points[faces,axis_id]-side)<2e-6,axis=1)
-                caps[np.unique(faces[at]),axis_id]=True;cap_faces|=at
-        active=np.unique(faces[~cap_faces]);q=points[active].copy();constraints=caps[active]
-        def f(p):return sum(a*b for a,b in zip(weights,fields(p[:,0],p[:,1],p[:,2])))
-        for iteration in range(7):
-            value=f(q);residual=np.abs(value)-.55;gradient=[]
-            for axis_id in range(3):
-                delta=np.zeros_like(q);delta[:,axis_id]=1e-5
-                gradient.append((f(q+delta)-f(q-delta))/(2e-5)*np.sign(value))
-            gradient=np.column_stack(gradient);gradient[constraints]=0
-            move=residual[:,None]*gradient/np.maximum(np.sum(gradient**2,axis=1)[:,None],1e-14)
-            length=np.linalg.norm(move,axis=1);move*=np.minimum(1,.015/np.maximum(length,1e-14))[:,None]
-            q=np.clip(q-move,-.5,.5)
-        points[active]=q
-        # Separate samples on a box crease can converge to the same root.
-        # Damp those moves instead of welding away their boundary topology.
-        delta=points-original;blend=np.full(len(points),.999)
-        for iteration in range(16):
-            candidate=original+blend[:,None]*delta
-            _,inverse,counts=np.unique(candidate.astype(np.float32),axis=0,return_inverse=True,return_counts=True)
-            duplicates=counts[inverse]>1
-            if not np.any(duplicates):break
-            blend[duplicates]*=.5
-        else:
-            blend[duplicates]=0;candidate=original+blend[:,None]*delta
-        mesh.points=candidate
-        return mesh
     def morph(weights):
         image.point_data['field']=np.maximum(np.abs(sum(a*b for a,b in zip(weights,fs)))-.55,box).ravel(order='F')
-        return project_walls(image.contour([0],scalars='field',method='flying_edges'),weights)
+        mesh=image.contour([0],scalars='field',method='flying_edges').triangulate().clean()
+        mesh=mesh.compute_normals(auto_orient_normals=True,consistent_normals=True,split_vertices=False)
+        # Cut the smooth wall with exact planes. Contouring max(field, box)
+        # at the final cut creates stepped rims where the two fields meet.
+        import trimesh
+        cut=trimesh.Trimesh(vertices=mesh.points,faces=mesh.faces.reshape(-1,4)[:,1:],process=False)
+        cut.fix_normals(multibody=True)
+        for axis_id in range(3):
+            for side in [-.5,.5]:
+                origin=np.zeros(3);origin[axis_id]=side
+                normal=np.zeros(3);normal[axis_id]=-np.sign(side)
+                cut=cut.slice_plane(plane_origin=origin,plane_normal=normal,cap=True,engine='triangle')
+                assert cut.is_watertight
+        mesh=pv.PolyData(cut.vertices,np.column_stack([np.full(len(cut.faces),3),cut.faces]).ravel())
+        return mesh
     with Job(parts=['native','closed-solids']) as job:
         with job.part('native') as part:
             meta=json.loads((root/'public/meshers/gyroid-meshers.json').read_text());b=(root/'public/meshers/gyroid-meshers.bin').read_bytes()
@@ -85,28 +73,19 @@ def main():
             part.update(1,'Frozen native boundary retained',tets=meta['tetrahedra'])
         with job.part('closed-solids') as part:
             base=save(solid([1,0,0,0]),run/'geometry/gyroid.npz');receipt=[]
-            selected=list(map(int,args.frames.split(','))) if args.frames else list(range(1,409))
+            selected=list(map(int,args.frames.split(','))) if args.frames else list(range(181,409))
             for i,frame in enumerate(selected):
                 t=(frame-1)/24;head=[0.,0.,0.]
-                if t<7.5:
-                    h=-.48+.98*smoothstep(t/7.5)
-                    mesh=base.clip_closed_surface(normal='-z',origin=(0,0,h),tolerance=1e-9).clean(tolerance=1e-9,absolute=True)
-                    # Smooth XY motion with a small Z hop over a void. This is
-                    # an accelerated deposition illustration, not slicer G-code.
-                    hx=.38*np.sin(2*np.pi*.65*t);hy=.38*np.sin(2*np.pi*.95*t+.7)
-                    void=max(0.,abs(float(fields(hx,hy,h)[0]))-.50)
-                    head=[hx,hy,h+.025*float(smoothstep(void/.08))]
-                    path=run/f'geometry/frame_{frame:05d}.npz'
-                elif t<9:mesh=base;path=run/'geometry/gyroid.npz'
+                if t<9:mesh=base;path=run/'geometry/gyroid.npz'
                 else:
                     u=min((t-9)/2,3.999999);k=int(u);w=float(smoothstep(u-k));weights=[0.]*4;weights[k]=1-w;weights[(k+1)%4]+=w
                     mesh=morph(weights);path=run/f'geometry/frame_{frame:05d}.npz'
                 if path.name!='gyroid.npz':mesh=save(mesh,path)
                 receipt.append({'frame':frame,'file':path.name,'head':list(map(float,head)),
-                    'height':float(h) if t<7.5 else .5,'vertices':mesh.n_points,'triangles':mesh.n_cells,'volume':mesh.volume})
+                    'height':.5,'vertices':mesh.n_points,'triangles':mesh.n_cells,'volume':mesh.volume})
                 part.update((i+1)/len(selected),f'Closed curved solid {i+1}/{len(selected)}',vertices=mesh.n_points,triangles=mesh.n_cells)
             (run/'geometry/index.json').write_text(json.dumps(receipt))
-            (run/'geometry/receipt.json').write_text(json.dumps({'display_method':'Print: curved Meshers Gyroid; morph: capped nodal fields with constrained wall projection; reveal: unchanged frozen Tet4',
+            (run/'geometry/receipt.json').write_text(json.dumps({'display_method':'Print: slicer G-code beads; morph: capped 128-cell nodal fields without vertex projection; reveal: unchanged frozen Tet4',
                 'frames':len(receipt),'all_edges_incidence':2,'native_display_mesh_sha256':meta['binarySha256'],'native_tetrahedra':meta['tetrahedra'],
                 'morph':'abs((1-s)*fieldA+s*fieldB)<=0.55; s=u*u*(3-2*u); unit-box caps',
                 'illustration_only':True,'timing_is_not_the_frozen_benchmark':True,

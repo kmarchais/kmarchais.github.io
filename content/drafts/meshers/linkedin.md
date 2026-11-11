@@ -26,7 +26,7 @@ Code: https://github.com/kmarchais/meshers
 
 Editorial notes, not part of the post:
 
-- Attach `assets/meshers-gyroid-print.mp4` as the lead video. The printing and TPMS morphs are illustrations. The later Tet4 reveal preserves the actual benchmark connectivity.
-- Video description: "A conventional extrusion nozzle builds a capped solid Gyroid. The cell morphs through Schwarz P, Diamond and Neovius with smoothstep easing, then returns to Gyroid. Actual Meshers Tet4 edges appear, followed by generation-time, count and quality plots. Both coarse comparison meshes miss the strict boundary target."
+- Attach `assets/meshers-gyroid-smooth-print.mp4` as the lead video. The printing and TPMS morphs are illustrations. The later Tet4 reveal preserves the actual benchmark connectivity.
+- Video description: "A stylized nozzle progressively reveals a smooth, capped Gyroid solid along its path. The cell morphs through Schwarz P, Diamond and Neovius with smoothstep easing, then returns to Gyroid. Actual Meshers Tet4 edges appear, followed by generation-time, count and quality plots. Both coarse comparison meshes miss the strict boundary target."
 - Replace the article placeholder only after publication. No post has been sent.
 - Source hashes and all five generation durations per route are in `gyroid-comparison.json`.

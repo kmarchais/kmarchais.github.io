@@ -3,7 +3,7 @@ import argparse,os,signal,subprocess,sys,time
 from pathlib import Path
 import psutil
 sys.path.insert(0,str(Path.home()/'bin'))
-from pueue_progress import Job
+from pueue_progress import Job,report
 p=argparse.ArgumentParser();p.add_argument('--timeout',type=float,required=True);p.add_argument('--log',type=Path,required=True)
 p.add_argument('--units-dir',type=Path,required=True);p.add_argument('--pattern',default='frame_*.png');p.add_argument('--total',type=int,required=True)
 p.add_argument('command',nargs=argparse.REMAINDER);a=p.parse_args()
@@ -31,6 +31,9 @@ with Job() as job,a.log.open('w') as log:
         except ProcessLookupError:pass
         print('\n'.join(a.log.read_text().splitlines()[-24:]),flush=True);raise
     job.update(1,'Complete',force=True,eta_s=0,peak_gib=peak/1024**3,elapsed_s=time.monotonic()-started)
+# Job.__exit__ publishes an empty final values map; keep the measured totals
+# visible after that finalizer rather than losing the queue's resource chips.
+report(1,'Complete',eta_s=0,peak_gib=peak/1024**3,elapsed_s=time.monotonic()-started)
 for line in a.log.read_text().splitlines():
     if '\x1b]7717;result;' in line:print(line,flush=True)
 print(f'Completed in {time.monotonic()-started:.1f} s; peak process-tree RSS {peak/1024**3:.3f} GiB. Log: {a.log}',flush=True)
