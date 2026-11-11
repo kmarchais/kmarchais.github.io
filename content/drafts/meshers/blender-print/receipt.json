@@ -1,0 +1,150 @@
+{
+  "video_sha256": "7f4cc3b37127e023c506f3d2e9d1eb3422399e4e7fbaa01428414762ec4d947c",
+  "video_bytes": 8299780,
+  "probe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1080,
+        "height": 1350,
+        "pix_fmt": "yuv420p",
+        "avg_frame_rate": "24/1",
+        "nb_frames": "720"
+      }
+    ],
+    "format": {
+      "duration": "30.000000",
+      "size": "8299780"
+    }
+  },
+  "full_decode": "passed",
+  "encoded_keyframes_reviewed_at_seconds": [
+    0.5,
+    3,
+    6,
+    9.5,
+    11.5,
+    13.5,
+    15.5,
+    17.5,
+    21,
+    25,
+    29
+  ],
+  "blender": "4.5.16 LTS",
+  "engine": "BLENDER_EEVEE_NEXT",
+  "samples": 64,
+  "geometry": {
+    "display_method": "Print: curved Meshers Gyroid; morph: capped nodal fields with constrained wall projection; reveal: unchanged frozen Tet4",
+    "frames": 408,
+    "all_edges_incidence": 2,
+    "native_display_mesh_sha256": "f29e7295440d9760a522be0fbbcf7fdf8b4398e930e9257b075968a889577b39",
+    "native_tetrahedra": 10832,
+    "morph": "abs((1-s)*fieldA+s*fieldB)<=0.55; s=u*u*(3-2*u); unit-box caps",
+    "illustration_only": true,
+    "timing_is_not_the_frozen_benchmark": true,
+    "sources": {
+      "prepare.py": "dbecb9b0a4251d14a4de849ff065689ff82b673d7696cad42164f76545192ef8",
+      "tpms.py": "39f59273e5c3c52d952af3df2ccb9c21bf8609028f1ceded0361da469706b60b"
+    }
+  },
+  "playback": {
+    "checks": [
+      {
+        "frame": 1,
+        "vertices": 2726,
+        "faces": 5432
+      },
+      {
+        "frame": 60,
+        "vertices": 12277,
+        "faces": 24546
+      },
+      {
+        "frame": 145,
+        "vertices": 36078,
+        "faces": 72164
+      },
+      {
+        "frame": 180,
+        "vertices": 40053,
+        "faces": 80110
+      },
+      {
+        "frame": 181,
+        "vertices": 40510,
+        "faces": 81024
+      },
+      {
+        "frame": 216,
+        "vertices": 40510,
+        "faces": 81024
+      },
+      {
+        "frame": 241,
+        "vertices": 48810,
+        "faces": 97636
+      },
+      {
+        "frame": 302,
+        "vertices": 65538,
+        "faces": 131112
+      },
+      {
+        "frame": 360,
+        "vertices": 44640,
+        "faces": 89272
+      },
+      {
+        "frame": 408,
+        "vertices": 55770,
+        "faces": 111544
+      },
+      {
+        "frame": 409,
+        "vertices": 3283,
+        "faces": 5064
+      },
+      {
+        "frame": 420,
+        "vertices": 3283,
+        "faces": 5064
+      },
+      {
+        "frame": 610,
+        "vertices": 3283,
+        "faces": 5064
+      },
+      {
+        "frame": 720,
+        "vertices": 3283,
+        "faces": 5064
+      }
+    ],
+    "native_positions_and_faces_exact": true,
+    "printer_transition_continuous": true
+  },
+  "benchmark_json_sha256": "7db5d221b0d5b4845f31fb3f15f14704e0dd1b541428813f0e1df73bba0165e3",
+  "source_mesh_sha256": "637b342e63900b17e976f908f83a93c11f8f5c3e506d1d97e1efc2e7fb664a10",
+  "benchmark_source_commit": "4eea25af3d6f0aa6f8eb15a60030458263224183",
+  "benchmark_caveat": "Count-comparable coarse Tet4 pair; both miss the strict boundary target. No accuracy-qualified speedup is claimed.",
+  "render_config": {
+    "script_sha256": "bcb14b2e901d184d153328d17c450d539c29583a156d8f1cb0dfc0541e4f4d70",
+    "fields_sha256": "39f59273e5c3c52d952af3df2ccb9c21bf8609028f1ceded0361da469706b60b",
+    "geometry_index_sha256": "bdcb9d583b384647c5bbc3efcb704c47f16261150d1379b69f186272da5b3916",
+    "engine": "eevee",
+    "samples": 64,
+    "preview": false
+  },
+  "final_header_contrast": true,
+  "queue_jobs": {
+    "geometry": 895,
+    "render": 896,
+    "playback": 897,
+    "final_composition": 899
+  },
+  "render_seconds": 1344.3438815419795,
+  "render_peak_process_tree_gib": 0.915
+}
