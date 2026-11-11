@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080,height=1350">
+<script src="assets/gsap.min.js"></script>
+<style>
+:root { --ground:#0b1a20; --ink:#edf2ec; --muted:#a1b8bc; --mesh:#79c8bc; --brass:#d9ac72; }
+* { box-sizing:border-box; margin:0; }
+html,body,#root { width:1080px; height:1350px; overflow:hidden; background:var(--ground); }
+body { font-family:'Archivo Black',sans-serif; color:var(--ink); }
+#stage { position:absolute; inset:220px 0 auto; width:1080px; height:860px; }
+#masthead { position:absolute; top:66px; left:82px; font-family:'IBM Plex Mono',monospace; font-size:28px; letter-spacing:.18em; color:var(--brass); }
+.scene { position:absolute; inset:0; pointer-events:none; }
+.content { width:100%; height:100%; padding:124px 82px 94px; display:flex; flex-direction:column; justify-content:space-between; gap:30px; }
+h1 { font-size:68px; letter-spacing:-.045em; font-weight:400; line-height:1.08; max-width:900px; }
+.bottom { display:flex; flex-direction:column; gap:20px; }
+h2 { font-size:40px; font-weight:400; letter-spacing:-.025em; line-height:1.2; }
+p { font-family:'IBM Plex Mono',monospace; font-size:28px; color:var(--muted); line-height:1.5; }
+#mesh-scene { opacity:0; }
+#brand-line { width:110px; height:3px; background:var(--brass); margin-bottom:8px; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="14" data-width="1080" data-height="1350" data-fps="30">
+<canvas id="stage" data-layout-ignore aria-label="Morphing TPMS illustration and actual Meshers Gyroid"></canvas>
+<div id="masthead">MESHERS</div>
+<div id="morph-scene" class="scene"><div class="content">
+<h1 id="hook" data-layout-allow-overlap>Geometry in motion.</h1>
+<div class="bottom"><h2 id="families">Gyroid → Schwarz P → Diamond</h2><p id="illustration">TPMS field morph · illustration</p></div>
+</div></div>
+<div id="mesh-scene" class="scene"><div class="content">
+<h1 id="mesh-title" data-layout-allow-overlap>Meet Meshers.</h1>
+<div class="bottom"><div id="brand-line"></div><h2 id="mesh-caption">A real Gyroid volume mesh.</h2><p id="mesh-detail">10,832 Tet4 elements · periodic</p><p id="backend">Rust + Python · Microgen backend</p></div>
+</div></div>
+</div>
+<script type="importmap">{"imports":{"three":"./assets/three.module.min.js"}}</script>
+<script type="module" src="assets/scene.bundle.js"></script>
+<script>
+const tl = gsap.timeline({paused:true});
+tl.from('#masthead',{opacity:0,y:-12,duration:.6,ease:'power2.out'},.12);
+tl.from('#hook',{opacity:0,y:22,duration:.7,ease:'power3.out'},.18);
+tl.from('#families',{opacity:0,x:-18,duration:.65,ease:'sine.out'},.35);
+tl.from('#illustration',{opacity:0,duration:.8,ease:'power1.out'},.45);
+// One crossfade is the transition; the model is driven independently by hf-seek.
+tl.to('#morph-scene',{opacity:0,duration:.8,ease:'sine.inOut'},6.5);
+tl.to('#mesh-scene',{opacity:1,duration:.8,ease:'sine.inOut'},6.5);
+tl.from('#mesh-title',{y:26,opacity:0,duration:.65,ease:'power3.out'},6.55);
+tl.from('#mesh-caption',{x:-18,opacity:0,duration:.7,ease:'power2.out'},6.7);
+tl.from('#mesh-detail',{y:14,opacity:0,duration:.65,ease:'sine.out'},6.9);
+tl.from('#brand-line',{scaleX:0,transformOrigin:'left',duration:.8,ease:'power1.out'},6.9);
+tl.from('#backend',{opacity:0,duration:.8,ease:'sine.out'},7.1);
+window.__timelines = window.__timelines || {};
+window.__timelines.main = tl;
+</script>
+</body>
+</html>
