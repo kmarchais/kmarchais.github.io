@@ -1,0 +1,212 @@
+import solidsFigure from '../../../content/drafts/meshers/assets/solids-tet4.png';
+import spinodoidFigure from '../../../content/drafts/meshers/assets/spinodoid-progress.png';
+import benchmarkCsv from '../../../content/drafts/meshers/benchmark-data.csv?url';
+import benchmarkJson from '../../../content/drafts/meshers/benchmark-data.json?url';
+
+export const frontmatter = {
+  title: 'Meshers: from an implicit field to a tetrahedral mesh',
+  date: '2026-11-11',
+  excerpt: 'A Rust mesher with a Python API, its first Microgen integration, and the benchmark evidence behind it.',
+  tags: ['meshing', 'Microgen', 'finite-element-analysis', 'Rust', 'Python'],
+  draft: true,
+  hidden: true,
+};
+
+I've been working on **Meshers**, a tetrahedral meshing library written in Rust
+with a Python API. Its first integration is in
+[Microgen](https://github.com/3MAH/microgen), the microstructure-generation library.
+
+The goal is concrete: fit the boundary more accurately, produce better elements,
+and spend less time generating the mesh at a comparable element count. If the
+same accuracy needs fewer elements, even better.
+
+There are encouraging results already. On three fixed Tet4 solid benchmarks,
+Meshers generated admitted meshes in roughly 0.10 seconds, compared with
+1.58–1.77 seconds for a modified Microgen+MMG workflow. It also used fewer
+elements and improved the measured minimum and median element quality.
+
+Those are specific comparisons with recorded settings. They are not a claim
+that Meshers beats MMG on every geometry. Here is what was measured and where
+the work still needs to improve.
+
+## Why mesh directly from the field?
+
+Microgen can describe TPMS, spinodoids and composed implicit solids using a
+scalar field. The boundary is an isosurface; the field also tells us which side
+is material.
+
+A common workflow samples that field on a VTK grid, clips the solid, and then
+uses MMG to remesh it. That is a useful pipeline, but it introduces an
+intermediate discretization and a remeshing step. Geometry and periodic
+correspondence have to survive both.
+
+Meshers uses the field during tetrahedral construction, projection and quality
+improvement. Supported Python expressions compile to native evaluation with
+gradients. Other supported callables can use NumPy callbacks. The computation
+runs on the CPU in double precision; a GPU is not required.
+
+Direct access to the field gives the mesher more information. It does not remove
+the need to check its output. Small features, intersections and periodic caps
+can still make a mesh fail.
+
+## Three Tet4 comparisons where both routes pass
+
+These results use a capsule, ellipsoid and sphere in fixed unit-box specimens.
+Both routes deliver linear, four-node tetrahedra. We do not compare Tet4 with
+Tet10 and attribute the difference to the mesher.
+
+<img src={solidsFigure} alt="Generation time, tetrahedra, minimum quality and boundary error for three admitted Tet4 comparisons. The Microgen+MMG route is modified." />
+
+Times below are medians of five interleaved measured pairs on an Apple M4
+MacBook Pro with one numerical thread. Each route has an excluded warmup.
+
+| Specimen | Tetrahedra, Microgen+MMG → Meshers | Nodes, Microgen+MMG → Meshers | Generation time, seconds | Time ratio |
+| --- | ---: | ---: | ---: | ---: |
+| Capsule | 42,590 → 38,392 | 9,162 → 8,237 | 1.7680 → 0.10235 | 17.3× |
+| Ellipsoid | 37,217 → 32,640 | 8,104 → 6,883 | 1.5772 → 0.09669 | 16.3× |
+| Sphere | 46,874 → 43,848 | 10,386 → 9,095 | 1.7000 → 0.09805 | 17.3× |
+
+The meshes are not identical in size. Meshers uses about 6–12% fewer tetrahedra
+and 10–15% fewer nodes in these three selections. Budgets were selected for
+count proximity before the repeated timing, rather than selected for the
+largest speed ratio.
+
+For the capsule, minimum quality rises from 0.2973 to 0.5049 and median quality
+from 0.7572 to 0.9295. The maximum sampled two-sided boundary distance falls
+from 0.001428 to 0.000671 unit-box lengths. Absolute volume error against the
+analytic reference falls from 0.478% to 0.299%.
+
+All three comparisons improve those seven primary measures: time, tetrahedra,
+nodes, minimum quality, median quality, sampled two-sided distance and absolute
+volume error. That does not mean every statistic improves. For example, the
+ellipsoid's reverse-only boundary score is slightly worse even though its
+full two-sided maximum is lower.
+
+### What the comparison includes
+
+The competitor is an **explicitly modified actual Microgen+MMG route**, not
+Microgen defaults and not MMG applied to a Meshers seed. It uses sampling
+resolution 24, a first MMG pass with `hausd=0.0005`, `hmax=0.1` and `hgrad=1.3`,
+omits the second MMG pass, and includes relocation repair in its generation
+time. The tested default routes for these solids exceeded intermediate mesh
+caps, so they cannot supply an admitted timing comparison.
+
+The count-selected Meshers controls use uniform Tet4 generation and an internal
+geometry tolerance of 1.0. Their measured geometry is accepted by the separate,
+stricter audit below. These are validated fixed-specimen recipes, not defaults
+that promise that accuracy for arbitrary fields.
+
+Both outputs must pass the same external checks: minimum MMG-normalized quality
+at least 0.1, sampled two-sided distance at most 0.002 unit-box lengths, absolute
+volume error at most 1%, positive elements and consistent facets. The cap is
+250,000 nodes and tetrahedra. These three bounded solids are nonperiodic.
+
+Times include generation stages and the declared repair, with measurement
+instrumentation removed. They exclude independent validation, shared fixture
+preparation and FEA. This is a meshing-time result, not a 17× speedup of a
+complete validated simulation. Sampled distances are not certified Hausdorff
+bounds.
+
+<a href={benchmarkCsv}>Download the exported measurements</a>, including quality
+and volume metrics. The <a href={benchmarkJson}>data receipt</a> records source
+hashes, recipes and all five measured durations per route.
+
+## Periodic geometries are a separate test
+
+For a periodic specimen, matching a bounding box is not enough. Opposite
+material caps need corresponding nodes and consistent face triangulations.
+Tet10 meshes also need matching midside nodes.
+
+The wider study includes 16 TPMS sheet families, Schwarz P and D solids,
+spinodoids, graded TPMS and a smooth-union lattice. In one coarse Tet4 TPMS
+selection, Meshers was faster in all 14 cases where both routes returned a
+mesh. Neither selected arm passed every strict admission gate in those pairs.
+I do not count those as 14 matched-accuracy wins. Some native selections also
+have worse boundary or median-quality measurements.
+
+Spinodoids show useful progress with a clear tradeoff. Two improved Meshers
+recipes retain the frozen Fourier realizations and pass the geometry, quality
+and periodic checks:
+
+| Specimen | Tetrahedra, previous → improved | Generation time, seconds | Minimum quality, previous → improved |
+| --- | ---: | ---: | ---: |
+| Isotropic spinodoid | 72,378 → 46,617 | 3.281 → 2.435 | 0.23317 → 0.15336 |
+| Anisotropic spinodoid | 61,868 → 36,056 | 2.563 → 1.517 | 0.12185 → 0.100012 |
+
+<img src={spinodoidFigure} alt="Meshers spinodoid before and after: fewer tetrahedra and lower generation time, with lower minimum quality." />
+
+That is 36–42% fewer tetrahedra and 26–41% less generation time, with a slightly
+lower maximum sampled boundary error. Minimum and median quality decrease.
+Both stay above the declared floor, but the anisotropic minimum has little
+margin. The gain combines a projection-recovery fix and changed sizing recipes;
+it is not an isolated claim about one code change.
+
+The tested sampling-32 Microgen+MMG routes fail admission, including minimum
+quality, so these are native before/after improvements rather than a new
+matched-accuracy speedup over MMG. The lattice's full mixed-load stiffness
+reference convergence is also unresolved. Mesh validity and stiffness
+convergence remain different questions.
+
+## An optional backend in Microgen
+
+The integration adds a selector to the existing shape volume-meshing methods.
+Calling `shape.generate_volume_mesh()` still uses VTK. The new
+`backend="mmg"` is shorthand for that VTK seed followed by Microgen's existing
+boundary-preserving MMG pipeline. `backend="meshers"` generates the tetrahedra
+directly, then returns a PyVista data structure for compatibility. It does not
+call VTK's meshing algorithms or MMG.
+
+Here is a periodic Gyroid example using the candidate integration:
+
+```python
+from microgen import Tpms
+from microgen.shape.surface_functions import gyroid
+
+shape = Tpms(gyroid, offset=1.1, resolution=24)
+mesh = shape.generate_volume_mesh(
+    backend="meshers",
+    cells=24,
+    adapt=True,
+    adapt_tolerance=0.0018,
+    geometry_tolerance=0.002,
+    minimum_quality=0.1,
+    optimize_passes=1,
+    max_tetrahedra=250_000,
+    periodic=(True, True, True),
+)
+```
+
+This illustrates the API; it is not the recipe behind the solid benchmark
+table. The MMG selector likewise preserves the existing pipeline rather than
+implementing the modified competitor used in that table. MMG's `periodic`
+option is a Boolean and retains its existing `True` default. Use `False` for
+nonperiodic solids. Meshers takes one Boolean per axis.
+
+The current adapter covers implicit Shape objects, Cartesian TPMS and
+spinodoids. It retains one Spinodoid field evaluator for both backends.
+Mapped or clipped TPMS and grid-sampled grading still need domain or
+interpolation work. A linear grade can be periodic only along axes where its
+complete material field repeats.
+
+## What comes next
+
+The first release is being prepared. Meshers remains optional in the Microgen
+integration branch, and cross-platform artifact validation is still a release
+gate. The code examples require the candidate branch and SDK until publication.
+
+The next numerical work is to improve difficult-case admission and geometry
+fidelity at small element budgets, keep exact periodic correspondence, and
+establish the remaining FEA convergence evidence. More elements should earn
+their cost through a measurable accuracy gain.
+
+[Meshers](https://github.com/kmarchais/meshers) ·
+[Microgen integration branch](https://github.com/3MAH/microgen/tree/codex/meshers-backend-integration)
+
+### Benchmark sources
+
+- [Admitted solid comparisons and complete route settings](https://github.com/kmarchais/meshers/blob/4eea25af3d6f0aa6f8eb15a60030458263224183/experiments/adaptive/runs/macbook-implicit-tet4-modified-repeated-v1/study/summary.json).
+- [Spinodoid repetitions, including rejected actual competitors](https://github.com/kmarchais/meshers/blob/4eea25af3d6f0aa6f8eb15a60030458263224183/experiments/adaptive/runs/macbook-spinodoid-release-repeated-v1/study/summary.json).
+- [Wider study and unresolved cases](https://github.com/kmarchais/meshers/blob/4eea25af3d6f0aa6f8eb15a60030458263224183/PROJECT_TRACKING.md).
+
+Measurements are from study builds before publication. The complete failures
+and superseded selections remain in that study history.
