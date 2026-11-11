@@ -1,48 +1,32 @@
 # LinkedIn draft
 
-I've been working on Meshers, a tetrahedral meshing library written in Rust
-with a Python API. Its first integration is in Microgen.
+I've been developing Meshers, a tetrahedral meshing library written in Rust with a Python API, and integrating it as an optional backend in Microgen.
 
-The aim: better boundary fidelity and element quality, with less meshing time
-at a comparable number of elements.
+The flagship example is a periodic Gyroid unit cell. The image shows the actual Tet4 meshes, including exposed interior element faces.
 
-The first results are encouraging. On three fixed Tet4 solid benchmarks,
-capsule, ellipsoid and sphere, both routes passed the same geometry and quality
-checks. Meshers generated the meshes in about 0.10 s, versus 1.58–1.77 s for a
-modified Microgen+MMG workflow, with fewer tetrahedra and nodes and better
-minimum and median quality.
+At comparable element counts, the recorded five-pair medians on an Apple M4 are:
 
-That is about 16–17 times faster mesh generation for those three comparisons.
-The competitor uses explicitly modified settings and charged relocation repair;
-this is not a comparison against untouched defaults. Measurements use five
-paired runs on the same Apple M4, and exclude independent audits and FEA.
+• Microgen+MMG: 12,250 tetrahedra, 1.780 s
+• Meshers: 10,832 tetrahedra, 0.093 s
 
-Periodic TPMS and spinodoids bring harder questions. The study checks node
-pairing and cap triangulations, boundary distance and volume error. Some cases
-still fail, and I don't count a fast rejected mesh as a win.
+Meshers improves minimum, median, mean, p10 and p90 element quality in this pair. MMG has a slightly higher maximum. Both meshes match opposite nodes and cap triangulations; MMG also has four oriented-facet conflicts elsewhere in the mesh.
 
-The Microgen integration is optional. Existing VTK and MMG workflows remain
-available alongside direct meshing with Meshers.
+There is an important limit: neither coarse mesh meets the study's strict boundary-accuracy target. These are fixed-budget measurements, not a claimed speedup at matched accuracy.
 
-I'm preparing the first release and an article covering the method, benchmark
-settings, results and remaining limitations.
+The article includes interactive Three.js views of both actual meshes, the complete quality statistics, periodicity checks, recipes and remaining limitations.
+
+I'm preparing the first release. Existing VTK and MMG workflows remain available alongside Meshers in the integration branch.
 
 Article: [ADD THE PUBLISHED ARTICLE URL]
 Code: https://github.com/kmarchais/meshers
 
-If you work on implicit geometries or periodic FEA, which geometry would you
-want to see tested next?
-
-#Meshing #FiniteElementAnalysis #Microstructures #Python #Rust
+#Meshing #FiniteElementAnalysis #Microgen #Python #Rust
 
 ---
 
 Editorial notes, not part of the post:
 
-- Attach `assets/solids-tet4.png`; its legend labels the modified competitor.
-- Alt text: "Three admitted Tet4 solid comparisons. Meshers takes about 0.10
-  seconds versus 1.58–1.77 seconds for the modified Microgen+MMG route, with fewer
-  tetrahedra, higher minimum quality and lower sampled boundary error."
-- Replace the article placeholder and verify repository/article visibility
-  before posting. Change release wording only after publication is verified.
-- Data and source receipts are in `benchmark-data.json`. No post has been sent.
+- Attach `assets/meshers-gyroid-comparison.png` as the lead image.
+- Alt text: "The same Gyroid cell meshed with Microgen+MMG and Meshers. Both actual tetrahedral meshes are shown with an element cutaway. The table includes time, counts, all six quality statistics and periodic/coherence checks. Both fail the strict boundary target."
+- Replace the article placeholder only after publication. No post has been sent.
+- Source hashes and all five generation durations per route are in `gyroid-comparison.json`.
