@@ -78,7 +78,7 @@ report = {'case':'Fixed Gyroid sheet unit cell, offset 1.1, Tet4',
 
 with (root/'content/drafts/meshers/gyroid-comparison.csv').open('w',newline='') as f:
     keys=['route','generation_s','tetrahedra','nodes','q_min','q_max','q_median','q_mean','q_p10','q_p90','periodic_nodes','periodic_caps','oriented_facet_conflicts','overall_admitted']
-    writer=csv.DictWriter(f,fieldnames=keys);writer.writeheader()
+    writer=csv.DictWriter(f,fieldnames=keys,lineterminator="\n");writer.writeheader()
     for r in records:
         writer.writerow(dict(route=r['name'],generation_s=r['generationSeconds'],tetrahedra=r['tetrahedra'],nodes=r['nodes'],
             **{'q_'+k:v for k,v in r['qualityStats'].items()},periodic_nodes=r['periodicNodesMatch'],periodic_caps=r['periodicCapsMatch'],
