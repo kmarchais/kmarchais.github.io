@@ -1,5 +1,5 @@
 """Bound the child, log its output, and report real completed-file progress with Job."""
-import argparse,os,signal,subprocess,sys,time
+import argparse,subprocess,sys,time
 from pathlib import Path
 import psutil
 sys.path.insert(0,str(Path.home()/'bin'))
@@ -9,10 +9,10 @@ p.add_argument('--units-dir',type=Path,required=True);p.add_argument('--pattern'
 p.add_argument('command',nargs=argparse.REMAINDER);a=p.parse_args()
 a.log.parent.mkdir(parents=True,exist_ok=True)
 command=a.command[1:] if a.command[:1]==['--'] else a.command
-started=time.monotonic();peak=0
+started=time.monotonic();started_wall=time.time();peak=0
 with Job() as job,a.log.open('w') as log:
     job.update(0,'Starting bounded worker',force=True,eta_s=a.timeout,rss_gib=0)
-    child=subprocess.Popen(command,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+    child=subprocess.Popen(command,stdout=log,stderr=subprocess.STDOUT,start_new_session=False)
     try:
         while child.poll() is None:
             try:
@@ -25,10 +25,16 @@ with Job() as job,a.log.open('w') as log:
             if elapsed>a.timeout or peak>12*1024**3:raise RuntimeError('Exceeded timeout or 12 GiB process-tree RSS ceiling')
             time.sleep(.5)
         if child.returncode:raise RuntimeError(f'Child failed with exit {child.returncode}')
-        assert len(list(a.units_dir.glob(a.pattern)))>=a.total,'Missing completed frame files'
+        matches=list(a.units_dir.glob(a.pattern));assert len(matches)>=a.total,'Missing completed frame files'
+        if a.pattern.endswith('.json') and '*' not in a.pattern:assert matches[0].stat().st_mtime>=started_wall,'Result receipt was not rewritten by this worker'
     except BaseException:
-        try:os.killpg(child.pid,signal.SIGKILL)
-        except ProcessLookupError:pass
+        try:
+            descendants=psutil.Process(child.pid).children(recursive=True)
+            for process in reversed(descendants):
+                try:process.kill()
+                except psutil.NoSuchProcess:pass
+            child.kill();child.wait(timeout=10)
+        except (ProcessLookupError,psutil.NoSuchProcess):pass
         print('\n'.join(a.log.read_text().splitlines()[-24:]),flush=True);raise
     job.update(1,'Complete',force=True,eta_s=0,peak_gib=peak/1024**3,elapsed_s=time.monotonic()-started)
 # Job.__exit__ publishes an empty final values map; keep the measured totals

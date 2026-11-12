@@ -2,7 +2,7 @@
 
 I've been developing Meshers, a tetrahedral meshing library written in Rust with a Python API, and integrating it as an optional backend in Microgen.
 
-The video starts with a Gyroid being printed, then morphs through several closed TPMS unit cells. It returns to Gyroid, reveals the actual Meshers Tet4 mesh and compares the recorded meshing results.
+The video starts with a robot assembling a Gyroid from its actual tetrahedra, then morphs through several closed TPMS unit cells. It returns to Gyroid, reveals the actual Meshers Tet4 mesh and compares the recorded meshing results.
 
 At comparable element counts, the recorded five-pair medians on an Apple M4 are:
 
@@ -15,7 +15,7 @@ There is an important limit: neither coarse mesh meets the study's strict bounda
 
 The article includes one interactive Three.js Gyroid, comparison plots for all six quality statistics, periodicity checks, recipes and remaining limitations.
 
-I'm preparing the first release. Existing VTK and MMG workflows remain available alongside Meshers in the integration branch.
+I'm preparing the Microgen-ready 0.2 release. Existing VTK and MMG workflows remain available alongside Meshers in the integration branch.
 
 Article: [ADD THE PUBLISHED ARTICLE URL]
 Code: https://github.com/kmarchais/meshers
@@ -26,7 +26,9 @@ Code: https://github.com/kmarchais/meshers
 
 Editorial notes, not part of the post:
 
-- Attach `assets/meshers-gyroid-smooth-print.mp4` as the lead video. The printing and TPMS morphs are illustrations. The later Tet4 reveal preserves the actual benchmark connectivity.
-- Video description: "A stylized nozzle progressively reveals a smooth, capped Gyroid solid along its path. The cell morphs through Schwarz P, Diamond and Neovius with smoothstep easing, then returns to Gyroid. Actual Meshers Tet4 edges appear, followed by generation-time, count and quality plots. Both coarse comparison meshes miss the strict boundary target."
+- Attach `assets/meshers-gyroid-robot-assembly.mp4` as the lead video. The robot assembly and TPMS morphs are illustrations. The later Tet4 reveal preserves the actual benchmark connectivity.
+- Video description: "A robot picks actual Meshers tetrahedra from a worktable and assembles a Gyroid. Three slow placements lead into a labelled assembly time-lapse. Small display gaps keep the individual cells visible. The cell morphs through Schwarz P, Diamond and Neovius with smoothstep easing, then returns to Gyroid. Actual Meshers Tet4 edges appear, followed by generation-time, count and quality plots. Both coarse comparison meshes miss the strict boundary target."
 - Replace the article placeholder only after publication. No post has been sent.
 - Source hashes and all five generation durations per route are in `gyroid-comparison.json`.
+
+- Robot asset: Franka FR3 from NVIDIA Isaac Sim assets on Hugging Face, pinned in the video source manifest. Asset and material license notices are retained with the editable project.

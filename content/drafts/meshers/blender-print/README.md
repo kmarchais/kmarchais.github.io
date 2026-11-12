@@ -1,24 +1,109 @@
-# Gyroid printing and TPMS animation
+# Gyroid assembly and TPMS film
 
-The video is a 36-second, 1080 × 1350 Blender animation at 24 fps. A 13.5-second stylized nozzle sweep reveals a smooth, capped Gyroid solid. There are no supports or individual extrusion tubes. An open-front printer supports the X/Z carriage on two columns; its Y bed and the specimen move together. The head parks clear of the part before the complete machine exits along the floor. The cell then the cell morphs through Gyroid, Schwarz P, Diamond, Neovius and Gyroid. Actual Tet4 edges appear before measured comparison plots.
+The current cut uses NVIDIA's Franka FR3 to assemble a Gyroid from the 10,832
+actual Meshers Tet4 cells in the frozen benchmark binary. All pieces start on
+an indexed annular tray. Each rests on a triangular face whose support polygon
+contains its projected centre of mass. Footprints do not overlap. Three visible
+pick/place cycles lead into an assembly time-lapse. The inventory never
+replenishes: stock plus carried plus assembled cells stays 10,832.
 
-`deposition.py` owns both nozzle motion and the reveal volume. Twelve layers each use eight alternating raster passes. During a pass, an exact Boolean intersects the original smooth Gyroid with the volume swept behind the nozzle. Earlier rows and layers stay complete, while the current row grows continuously in the nozzle's direction. Travel moves hold that volume unchanged. The temporary cut front is capped. This is a visual explanation, not slicer G-code, a measured print duration or manufacturing certification.
+The 39-second film then morphs through Gyroid, Schwarz P, Diamond, Neovius and
+Gyroid. It returns to the actual tetrahedra before presenting generation time,
+element count and all six quality summaries. Morphs use cubic smoothstep,
+`s = u*u*(3-2*u)`. They are closed display solids, not benchmark candidates.
+The source meshes and measurements remain unchanged. A 0.965 contraction about
+each tetrahedron's centroid exaggerates the display seams; this is not a
+material-strength prediction.
 
-The display morphs contour the nodal fields at spacing 1/128, outside the final cube. Trimesh and Triangle clip and cap the result on the six exact cube planes. This avoids folded triangles from the old vertex projection and stepped rims from contouring the wall and final box together. Float32-safe cleanup merges roundoff at cube cuts within 1e-7. Every saved morph checks nonzero triangle area and two incident triangles per edge. Shading derives from the rendered triangles; caps stay flat. These controls do not certify self-intersection freedom or FE admission. Disconnected regions of a field blend are retained.
+The plots read `../gyroid-comparison.json`. Both coarse routes miss the strict
+boundary-distance target, and the film states that limitation. These are
+fixed-budget measurements, not an accuracy-qualified speedup. MMG retains its
+slightly higher maximum quality. Robot and rendering durations are unrelated
+to meshing time.
 
-The final reveal retains the frozen Tet4 positions and boundary connectivity. Display coordinates use Float32. Charts read `gyroid-comparison.json`, whose measurements and quality statistics come from the original Float64 meshes. They show all six requested quality summaries, including MMG's slightly higher maximum. Both coarse routes miss the strict boundary-distance target; the video states that limit. Render and printing durations are not meshing measurements.
+## Robot source and licenses
 
-`tpms.py` owns the fields and cubic smoothstep `s = u*u*(3-2*u)`. `prepare.py` builds closed display geometry and verifies the native mesh hash. `blender_scene.py` renders and embeds cache playback in the saved scene. `compose.py` adds plots and encodes H.264. `finish_scene.py` checks the actual evaluated Boolean geometry against the swept volume, nozzle alignment, held travel and exact native arrays. `bounded.py` enforces the timeout and 12 GiB process-tree RSS ceiling while the child reports through the standard `Job` helper.
+The robot comes from [NVIDIA Isaac Sim assets on Hugging Face](https://huggingface.co/datasets/nvidia/isaacsim-assets),
+package `frankarobotics_frankafr3_fr3`, at revision
+`a0d9dfbac5163a7005442ae4fe8f954ff6780093`. The 28 downloaded files total 23,299,546
+bytes. `fr3-asset-manifest.json` records every SHA256; `fetch_fr3.py` downloads
+that exact revision and verifies each file. The robot's Apache 2.0 license and
+NVIDIA material notices are retained in `licenses`. No endorsement is implied.
 
-Use the shared one-worker `gpu` queue for heavy stages, with `qrun --check-start --progress report --interrupt restart`. Read each result before starting the next stage. Run from the website root, using complete script paths. The data environment needs Meshers, NumPy, PyVista/VTK and Pillow, plus `trimesh==4.11.2`, `shapely==2.1.2`, `triangle==20250106`, `networkx==3.5` and `rtree==1.4.1`. The supervisor needs psutil and the standard progress helper. Blender 4.5.16 LTS uses two CPU render threads. The final render uses denoised Cycles with 32 samples on the M4 Metal GPU; Eevee remains available for controls.
+Native arm64 `usd-core==25.11` reads the USD. `prepare_fr3.py` converts 11 visual
+meshes, authored corner normals and material subsets. Zero-length authored
+normals stay zero for Blender's automatic-normal handling. The saved scene
+requires finite corner normals. It also prepares stable
+staging from the source cells. `fr3_kinematics.py` uses the authored joint frames
+and limits. The fixed hand attachment preserves the composed visual-body
+transform, including its offset. Zero-pose transforms reproduce the USD within
+2.03e-7. The Mac renders with Metal; it needs neither IsaacSim nor CUDA.
 
-Pass these stage commands as children of `bounded.py` inside qrun:
+`plan_fr3.py` bakes 432 introductory poses. A previous-pose penalty keeps the
+seven-joint inverse kinematics continuous. A quarter-turn base mount and an
+opposite first-joint offset preserve all downstream world poses while keeping
+the complete asymmetric base foot clear of the stock ring. The fine pickup adapter is an
+illustrative tool held by the asset's original parallel gripper. This is an
+animation, not a manufacturing program or industrial collision certificate.
 
-- Data Python: `prepare.py --run RUN`. Use a 900-second timeout, units directory `RUN/geometry`, pattern `frame_*.npz`, and 192 output files. Its 228-entry index includes a held Gyroid during printer withdrawal.
-- Blender: `blender -b -t 2 --factory-startup --python-exit-code 1 -P blender_scene.py -- --run RUN --engine cycles`. Use a 4,200-second timeout, units directory `RUN/frames`, and 864 PNG files.
-- Blender: load `RUN/scene.blend` with script auto-execution disabled and run `finish_scene.py`. Use a 180-second timeout, units directory `RUN`, pattern `playback-verified.json`, and one output file.
-- Data Python: `compose.py --run RUN --output VIDEO.mp4`. Use a 300-second timeout, units directory `RUN/composite`, and 864 PNG files.
+## Rebuilding
 
-`RUN` is persistent. Use a new directory after changing preparation inputs. Render folders retain input hashes, and restart checks PNG completion chunks before reusing frames. Full Blender output goes to a log beside the cache; the queue gets measured frame progress, ETA and values. Short visual and causal controls precede the full render.
+Heavy stages use the shared one-worker `gpu` queue, with
+`qrun --check-start --progress report --interrupt restart`. Read each result
+before submitting its successor. The child reports measured progress through
+`Job`. `bounded.py` enforces explicit timeouts and a 12 GiB process-tree RSS
+ceiling. Exact JSON completion receipts must be newly written. Children share
+the queued process group so cancellation reaches the renderer; an intentional
+cancellation control checks that no child survives.
 
-Keep `scene.blend` beside its `geometry` directory for playback. Run the embedded `PLAY_ANIMATION.py` once if Blender disables trusted script auto-execution. The source and cache remain editable. The video, cover and receipts belong to the website draft, outside the Meshers release PR. The old 30-second film and the rejected slicer/bead control remain as superseded local artifacts.
+Use Blender 4.5.16 LTS with Metal Cycles, 32 samples and two CPU render threads.
+Every Blender invocation must include `--python-exit-code 1`; its default exit
+status can otherwise hide a Python error. The data environment needs NumPy,
+SciPy, Pillow and usd-core 25.11. The previous smooth-solid preparation uses
+Trimesh 4.11.2, Shapely 2.1.2, Triangle 20250106, NetworkX 3.5 and Rtree 1.4.1.
+
+From the website root, run these stages through the bounded queue wrapper:
+
+1. `fetch_fr3.py --out CACHE` verifies the pinned asset.
+2. `prepare_fr3.py --asset CACHE/frankarobotics_frankafr3_fr3/fr3.usda --source BENCHMARK.json --run RUN`
+   reads `public/meshers/gyroid-meshers.json` and its adjacent binary, verifies the hash,
+   converts the asset and stages every source cell. The earlier source NPZ is
+   also accepted. Allow 300 seconds.
+3. Keep the verified smooth-solid `geometry` cache beside the new scene.
+   `plan_fr3.py RUN` bakes and verifies the trajectories. Allow 900 seconds.
+4. `fr3_scene.py --run RUN --preview --frames FRAMES --samples 16` renders
+   controls. Inspect pickup, carry, placement, the complete tray and each morph.
+   Preview mode independently renders static hold endpoints.
+5. Load `RUN/fr3-assembly.blend` and run `verify_fr3.py -- RUN`. The audit
+   evaluates the saved geometry-node counts, initial framing, joint limits,
+   table/pedestal vertex clearances, a conservative low-body bound against the
+   complete stock ring, closed morph samples and rewind.
+6. `fr3_scene.py --run RUN --samples 32` renders 936 full-resolution frames.
+   Allow 4,800 seconds. Existing PNGs are reused only with a complete PNG footer
+   and unchanged input hashes. Static camera holds reuse verified poses.
+7. Repeat the saved-scene audit, then run
+   `fr3_compose.py --run RUN --output VIDEO.mp4`. Allow 600 seconds. It checks the
+   frozen measurement hash, encodes 1080 × 1350 H.264/yuv420p at 24 fps and decodes
+   the entire film.
+8. `fr3_finish.py --run RUN --video VIDEO.mp4 --cover COVER.png` verifies source
+   identity and the encoded hash, extracts 20 phase frames and a contact sheet,
+   and writes the cover and artifact receipt. Allow 300 seconds. Inspect those
+   encoded frames before changing `assistant_visual_review` from `pending`.
+
+Keep `fr3-assembly.blend`, `trajectory.npz`, `all-tetrahedra-stock.npz` and
+`geometry` together. Run the embedded `ASSEMBLY_DIRECTOR.py` if trusted script
+execution is disabled. Playback uses the converted data and baked joint poses;
+it does not need USD or SciPy. The 11 original robot meshes are in the blend.
+
+## Preserved earlier versions
+
+The successful 36-second smooth-print film, its scene and receipt are retained.
+`deposition.py`, `blender_scene.py` and `compose.py` reproduce that cut. It uses
+one shared raster cursor for the nozzle and Boolean reveal, without supports
+or extrusion tubes. `prepare.py` builds capped, Float32-safe morph geometry;
+`finish_scene.py` audits that saved printer scene.
+
+The procedural two-link robot and its 20 replenished staging positions were
+rejected. Its incomplete render was canceled and is not promoted. Draft media
+and editorial sources stay outside the Meshers release PR. Nothing here
+deploys the website or publishes a LinkedIn post.

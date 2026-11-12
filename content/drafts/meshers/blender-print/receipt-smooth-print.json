@@ -1,0 +1,478 @@
+{
+  "artifact": "content/drafts/meshers/assets/meshers-gyroid-smooth-print.mp4",
+  "video_sha256": "71563571c3e17171d8c8c5dceaa6135613c4e6eabb927660e768f2df4b8cab57",
+  "video_bytes": 6616390,
+  "cover_sha256": "3f87e7a3c4feb0cefa69b93824565383a22b87ee00ef3fb83b7cae585fe5f6c3",
+  "probe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1080,
+        "height": 1350,
+        "pix_fmt": "yuv420p",
+        "avg_frame_rate": "24/1",
+        "nb_frames": "864"
+      }
+    ],
+    "format": {
+      "duration": "36.000000",
+      "size": "6616390"
+    }
+  },
+  "full_decode": "passed",
+  "blender": {
+    "blender": "4.5.16 LTS",
+    "devices": [
+      [
+        "Apple M4 (GPU - 10 cores)",
+        "METAL",
+        true
+      ],
+      [
+        "Apple M4",
+        "CPU",
+        false
+      ]
+    ],
+    "frames": 864,
+    "samples": 32,
+    "resolution": [
+      1080,
+      1350
+    ],
+    "preview": false,
+    "engine": "CYCLES",
+    "smoothstep": "u*u*(3-2*u)",
+    "native_mesh_unmodified": true
+  },
+  "render_config": {
+    "script_sha256": "19e0744bd65502cd352414c7fea81c60cf8951b679e0938e323b3b2adb0e9367",
+    "deposition_sha256": "0940dc23b75956e0d7d02e8160e2f23f81d1cbf614315e211dbea88c81cf1133",
+    "shading_sha256": "f3ff92265b7a04fbf9da41840ac1f4ef191e55c15a7ed251dd486690fdfba355",
+    "fields_sha256": "ce2d664c0612e69398a38ece1df1fb56790589fdd7657b4f2c6ef655e44bf138",
+    "geometry_index_sha256": "81a8509a086f350ecbe624fb284328c4378b9b7cb3b1a0a30493c46280c0085b",
+    "engine": "cycles",
+    "samples": 32,
+    "preview": false
+  },
+  "playback": {
+    "checks": [
+      {
+        "seconds": 0.0,
+        "stroke": 0,
+        "progress": 0.0,
+        "drawing": true,
+        "vertices": 0,
+        "faces": 0
+      },
+      {
+        "seconds": 0.5620833333333334,
+        "stroke": 3,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 2675,
+        "faces": 5338
+      },
+      {
+        "seconds": 1.1241666666666668,
+        "stroke": 7,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 5462,
+        "faces": 10916
+      },
+      {
+        "seconds": 1.6862500000000002,
+        "stroke": 11,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 6798,
+        "faces": 13588
+      },
+      {
+        "seconds": 2.2483333333333335,
+        "stroke": 15,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 8155,
+        "faces": 16302
+      },
+      {
+        "seconds": 2.810416666666667,
+        "stroke": 19,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 9936,
+        "faces": 19864
+      },
+      {
+        "seconds": 3.3725000000000005,
+        "stroke": 23,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 11645,
+        "faces": 23282
+      },
+      {
+        "seconds": 3.9345833333333338,
+        "stroke": 27,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 13368,
+        "faces": 26728
+      },
+      {
+        "seconds": 4.496666666666667,
+        "stroke": 31,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 14903,
+        "faces": 29802
+      },
+      {
+        "seconds": 5.058750000000001,
+        "stroke": 35,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 16423,
+        "faces": 32842
+      },
+      {
+        "seconds": 5.620833333333334,
+        "stroke": 39,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 17641,
+        "faces": 35274
+      },
+      {
+        "seconds": 6.182916666666667,
+        "stroke": 43,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 19503,
+        "faces": 38998
+      },
+      {
+        "seconds": 6.745000000000001,
+        "stroke": 47,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 21179,
+        "faces": 42350
+      },
+      {
+        "seconds": 7.307083333333334,
+        "stroke": 51,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 22802,
+        "faces": 45600
+      },
+      {
+        "seconds": 7.8691666666666675,
+        "stroke": 55,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 24632,
+        "faces": 49268
+      },
+      {
+        "seconds": 8.43125,
+        "stroke": 59,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 25892,
+        "faces": 51788
+      },
+      {
+        "seconds": 8.993333333333334,
+        "stroke": 63,
+        "progress": 0.9955555555556828,
+        "drawing": true,
+        "vertices": 27212,
+        "faces": 54428
+      },
+      {
+        "seconds": 9.555416666666668,
+        "stroke": 67,
+        "progress": 0.9859027777778948,
+        "drawing": true,
+        "vertices": 29018,
+        "faces": 58040
+      },
+      {
+        "seconds": 10.117500000000001,
+        "stroke": 71,
+        "progress": 0.9762500000001069,
+        "drawing": true,
+        "vertices": 30748,
+        "faces": 61500
+      },
+      {
+        "seconds": 10.679583333333333,
+        "stroke": 75,
+        "progress": 0.9665972222223047,
+        "drawing": true,
+        "vertices": 32488,
+        "faces": 64980
+      },
+      {
+        "seconds": 11.241666666666667,
+        "stroke": 79,
+        "progress": 0.9569444444445026,
+        "drawing": true,
+        "vertices": 34052,
+        "faces": 68112
+      },
+      {
+        "seconds": 11.80375,
+        "stroke": 83,
+        "progress": 0.9472916666667288,
+        "drawing": true,
+        "vertices": 35549,
+        "faces": 71106
+      },
+      {
+        "seconds": 12.365833333333335,
+        "stroke": 87,
+        "progress": 0.9376388888889267,
+        "drawing": true,
+        "vertices": 36769,
+        "faces": 73542
+      },
+      {
+        "seconds": 12.927916666666668,
+        "stroke": 91,
+        "progress": 0.9279861111111387,
+        "drawing": true,
+        "vertices": 38835,
+        "faces": 77674
+      },
+      {
+        "seconds": 13.49,
+        "stroke": 95,
+        "progress": 0.9183333333333366,
+        "drawing": true,
+        "vertices": 40599,
+        "faces": 81202
+      },
+      {
+        "seconds": 13.5,
+        "vertices": 40510,
+        "faces": 81024
+      },
+      {
+        "seconds": 14.9,
+        "vertices": 40510,
+        "faces": 81024
+      },
+      {
+        "seconds": 15,
+        "vertices": 152984,
+        "faces": 305972
+      },
+      {
+        "seconds": 16,
+        "vertices": 104152,
+        "faces": 208320
+      },
+      {
+        "seconds": 19,
+        "vertices": 185985,
+        "faces": 372006
+      },
+      {
+        "seconds": 22.95,
+        "vertices": 153058,
+        "faces": 306120
+      },
+      {
+        "seconds": 23,
+        "native_exact": true
+      },
+      {
+        "seconds": 25,
+        "native_exact": true
+      },
+      {
+        "seconds": 30,
+        "native_exact": true
+      },
+      {
+        "seconds": 35.95,
+        "native_exact": true
+      },
+      {
+        "seconds": 0.12612244897959163,
+        "stroke": 0,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 983,
+        "faces": 1958
+      },
+      {
+        "seconds": 0.1371428571428569,
+        "stroke": 0,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 983,
+        "faces": 1958
+      },
+      {
+        "seconds": 3.364897959183667,
+        "stroke": 23,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 11645,
+        "faces": 23282
+      },
+      {
+        "seconds": 3.375918367346932,
+        "stroke": 23,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 11645,
+        "faces": 23282
+      },
+      {
+        "seconds": 6.744489795918351,
+        "stroke": 47,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 21179,
+        "faces": 42350
+      },
+      {
+        "seconds": 6.755510204081617,
+        "stroke": 47,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 21179,
+        "faces": 42350
+      },
+      {
+        "seconds": 9.983265306122437,
+        "stroke": 70,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 30321,
+        "faces": 60646
+      },
+      {
+        "seconds": 9.994285714285702,
+        "stroke": 70,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 30321,
+        "faces": 60646
+      },
+      {
+        "seconds": 13.362857142857143,
+        "stroke": 94,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 39973,
+        "faces": 79950
+      },
+      {
+        "seconds": 13.373877551020408,
+        "stroke": 94,
+        "progress": 1.0,
+        "drawing": false,
+        "vertices": 39973,
+        "faces": 79950
+      }
+    ],
+    "native_positions_and_faces_exact": true,
+    "evaluated_geometry_inside_swept_nozzle_volume": true,
+    "travel_holds_reveal": true,
+    "no_support_or_bead_objects": true,
+    "head_frame_clearance_and_grounded_feet": true,
+    "bed_and_specimen_move_together": true
+  },
+  "geometry": {
+    "display_method": "Print: slicer G-code beads; morph: capped 128-cell nodal fields without vertex projection; reveal: unchanged frozen Tet4",
+    "frames": 228,
+    "all_edges_incidence": 2,
+    "native_display_mesh_sha256": "f29e7295440d9760a522be0fbbcf7fdf8b4398e930e9257b075968a889577b39",
+    "native_tetrahedra": 10832,
+    "morph": "abs((1-s)*fieldA+s*fieldB)<=0.55; s=u*u*(3-2*u); unit-box caps",
+    "illustration_only": true,
+    "timing_is_not_the_frozen_benchmark": true,
+    "sources": {
+      "prepare.py": "6926b27ea3e9d74bbca06133cc03ab4b7edb24a2989f005f9a70b2b751def38a",
+      "tpms.py": "ce2d664c0612e69398a38ece1df1fb56790589fdd7657b4f2c6ef655e44bf138"
+    },
+    "display_float32_cleanup": {
+      "tolerance": 1e-07,
+      "morph_files": 192,
+      "changed_frames": 14,
+      "minimum_doubled_area": 1.3873790429220374e-14,
+      "all_edges_incidence": 2,
+      "prepare_sha256": "0bb9880e67b19cd0d470beb4afd41db881545cf450bfc40157702b74389b0010"
+    }
+  },
+  "encoded_keyframes_extracted_at_seconds": [
+    0.5,
+    3,
+    7,
+    12.8,
+    13.8,
+    14.6,
+    15.5,
+    17.5,
+    19.5,
+    21.5,
+    23.7,
+    24.4,
+    26,
+    31,
+    35
+  ],
+  "benchmark_json_sha256": "7db5d221b0d5b4845f31fb3f15f14704e0dd1b541428813f0e1df73bba0165e3",
+  "native_binary_sha256": "f29e7295440d9760a522be0fbbcf7fdf8b4398e930e9257b075968a889577b39",
+  "benchmark_caveat": "Count-comparable coarse Tet4 pair; both miss the strict boundary target. No accuracy-qualified speedup is claimed.",
+  "printing": "Stylized raster/Boolean reveal; no supports, bead tubes or manufacturing claim.",
+  "queue_jobs": {
+    "geometry": 914,
+    "float32_precision": 915,
+    "machine_and_deposition_audit": 922,
+    "render": 923,
+    "final_scene_audit": 924,
+    "composition_and_full_decode": 925,
+    "artifact_verification": 926
+  },
+  "sources": {
+    "bounded.py": "79843f95e3ae084ef0ee0c7f415f00a547ceb54e5bd07eb075d878bb6a6fe381",
+    "deposition.py": "0940dc23b75956e0d7d02e8160e2f23f81d1cbf614315e211dbea88c81cf1133",
+    "compose.py": "313b548d6ddf61677803831508ab31309ecf1fd8dd204f0a6bdb821aca495c26",
+    "tpms.py": "ce2d664c0612e69398a38ece1df1fb56790589fdd7657b4f2c6ef655e44bf138",
+    "surface_shading.py": "f3ff92265b7a04fbf9da41840ac1f4ef191e55c15a7ed251dd486690fdfba355",
+    "finish_scene.py": "65153ea1146473e8c0802a925855e98dc88038d571ad01de765603cd85882b8e",
+    "blender_scene.py": "19e0744bd65502cd352414c7fea81c60cf8951b679e0938e323b3b2adb0e9367",
+    "prepare.py": "0bb9880e67b19cd0d470beb4afd41db881545cf450bfc40157702b74389b0010"
+  },
+  "encoded_keyframes_reviewed_at_seconds": [
+    0.5,
+    3,
+    7,
+    12.8,
+    13.8,
+    14.6,
+    15.5,
+    17.5,
+    19.5,
+    21.5,
+    23.7,
+    24.4,
+    26,
+    31,
+    35
+  ],
+  "render_seconds": 3829.876277500007,
+  "render_peak_process_tree_gib": 2.188,
+  "render_completion_audit": "Resource chips were cleared by the supervisor finalizer after completion; fixed in bounded.py. Runtime progress and ETA passed the startup audit."
+}

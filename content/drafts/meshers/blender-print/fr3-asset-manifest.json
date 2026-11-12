@@ -1,0 +1,146 @@
+{
+  "repository": "nvidia/isaacsim-assets",
+  "revision": "a0d9dfbac5163a7005442ae4fe8f954ff6780093",
+  "files": [
+    {
+      "path": "frankarobotics_frankafr3_fr3/.metadata/com.nvidia.simready.conformance.Package-Candidate@1.0.0.json",
+      "bytes": 831,
+      "sha256": "1bf44c9f30db275ab8a9b9b5e96ea411593e587248e9572d8ea38c18dbd2fcae"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/.metadata/com.nvidia.simready.conformance.Package@1.1.0.json",
+      "bytes": 734,
+      "sha256": "47fd53cd847aeea3ceff8b258b35a7e6bf034d3599667f674a3b707610bc1094"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/.metadata/com.nvidia.simready.packaging.bom.json",
+      "bytes": 6190,
+      "sha256": "cc6e4546041488cdc54b53f8c4d99ba084f32aa6d4e7e71a18988062b7f2e0b4"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/.metadata/com.nvidia.simready.root_usds.json",
+      "bytes": 65,
+      "sha256": "a3361b8898b3bd3d29118d7f3a26aa199675d04580eccc6529a883fec3a144f8"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/.metadata/frankarobotics_frankafr3_fr3_benchmark.json",
+      "bytes": 765334,
+      "sha256": "9f36d802a0abf94bb9b6ac580a8a53185192802d39f3512d1ac9cd55267790c5"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/.metadata/frankarobotics_frankafr3_fr3_validation.json",
+      "bytes": 6779,
+      "sha256": "9dcb89acaa364984c56336d7cccbfadb4c6e53ccae40fbe63de841015210046e"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/.metadata/license.txt",
+      "bytes": 10173,
+      "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/.thumbs/256x256/fr3.usda.png",
+      "bytes": 38966,
+      "sha256": "5c94f9bfe687a8ee27d63a7988212413950a007b8dea6a918b2bb9b85cad4ed9"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/com.nvidia.simready.packaging.json",
+      "bytes": 1448,
+      "sha256": "90f9998864b8a45e2d26c9f4d5b91e1403bc142a5d49b599e61105218a2cb83c"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/fr3.usda",
+      "bytes": 4329922,
+      "sha256": "e656dbaa3e8fd2a55a4cb88c8ca6e1d71b862f19267d78b517a91ba176643fb0"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/materials/mdl/OmniPBR.mdl",
+      "bytes": 13969,
+      "sha256": "c902cc38dc97ff6a89fe94dca94edfb523a30e3749d3708610a136867c3357bf"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/materials/mdl/OmniPBRBase.mdl",
+      "bytes": 17274,
+      "sha256": "701f37299b44106842bdbe025de52eedec391e35b038f61c4ed4d25bd98e7db1"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/materials/mdl/OmniPBR_ClearCoat.mdl",
+      "bytes": 27433,
+      "sha256": "085ba661b49042570e24cda09c939e5aebf312ae332af92744a99bd3abbfbee4"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/materials/mdl/aux_definitions.mdl",
+      "bytes": 101769,
+      "sha256": "ebb81c8977aeb30790399ec7aaa7f2f76cb23afb434f56201ef152aba45a6e81"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/materials/mdl/core_definitions.mdl",
+      "bytes": 201537,
+      "sha256": "052aec260e8dfef5d671545fc2fc28c0c478a5b043041c65a833b2a6d81bf950"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/materials/mdl/license.txt",
+      "bytes": 3220,
+      "sha256": "d62e1bd5e34d0ca6f92f0e9f10670ee0cd586695e20f0a838a8f859119589683"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/materials/mdl/support_definitions.mdl",
+      "bytes": 147454,
+      "sha256": "bb372f21b6e81d293b99fea6819a8309e2c33c732c7151752b4b33dade177f2e"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/payloads/Physics/mujoco.usda",
+      "bytes": 3687,
+      "sha256": "86bff679c62c9185eaa830144d9711d2f2a2643e74569db3e8e54d5c7aa85473"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/payloads/Physics/physics.usda",
+      "bytes": 18790,
+      "sha256": "6d68024fbef49441562ba647d3a12e992413ad88241aff740709ee9369597f41"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/payloads/Physics/physx.usda",
+      "bytes": 3102,
+      "sha256": "e0b4e8af17cf776f9372ddd63ef386c7a9c517d94ccc8446bf39a6e03d518837"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/payloads/base.usda",
+      "bytes": 24443,
+      "sha256": "31119560c9c2fa3c7d4553f4533dcf34cb5483ec78150dd30dca27067ec92915"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/payloads/geometries.usd",
+      "bytes": 17454466,
+      "sha256": "7b0b1cc82f880f36cca467673a924620164995a7b90093b63830bdfa485e77ce"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/payloads/instances.usda",
+      "bytes": 58236,
+      "sha256": "dcbd54736220469d620e7c0da7cac985516aea9557845cd2cfff233ee9aa041e"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/payloads/materials.usda",
+      "bytes": 27646,
+      "sha256": "ea394dfbb75af7dbdd7f8f0fccbaa88753ba47f1d678d4203e9eb5a1f74dd814"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/payloads/robot.usda",
+      "bytes": 10698,
+      "sha256": "e6526f08c9fa366917d9b65d17f53cb93e0047f654ee41c6e139704498d2a26c"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/runnables/physics/mujoco.usda",
+      "bytes": 11838,
+      "sha256": "e769d9fcdb410c53d91f1938036f9f648799e3f62b5216c2e39eb4b96bee69c9"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/runnables/physics/newton.usda",
+      "bytes": 8534,
+      "sha256": "8f762e4f897d511d9a4de77c1d0d616fc8d828e178761a4cb1a6e20debb4bab1"
+    },
+    {
+      "path": "frankarobotics_frankafr3_fr3/runnables/physics/physx.usda",
+      "bytes": 5008,
+      "sha256": "4235881e8a4a23c9eee3f7d46c93e1a68490b4e6ad33abfaf993fadd2070b523"
+    }
+  ]
+}
