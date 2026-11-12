@@ -18,9 +18,9 @@ def main():
  run=Path(sys.argv[1]);d=np.load(run/'all-tetrahedra-stock.npz');model=FR3(json.loads((run/'fr3-model.json').read_text()));n=len(d['tets']);cells=d['points'][d['tets']].astype(float);centers=cells.mean(1)
  # Hero cells already have a stable, native bottom face. No balancing or reshaping.
  f=d['face'];bottom=np.all(np.isclose(cells[np.arange(n)[:,None],FACES[f],2],-.5),axis=1)
- candidates=np.where(bottom & (np.linalg.norm(d['positions'][:,:2],axis=1)<.70))[0];height=d['flat'][:,:,2].max(1);heroes=candidates[np.argsort(height[candidates])[-3:]][::-1]
+ candidates=np.where(bottom & (np.linalg.norm(d['positions'][:,:2],axis=1)<.65) & (d['positions'][:,1]<-.30) & (np.abs(d['positions'][:,0])<.18))[0];height=d['flat'][:,:,2].max(1);heroes=candidates[np.argsort(height[candidates])[-3:]][::-1]
  layers=np.clip(np.floor((cells[:,:,2].max(1)+.5)*18),0,17);angle=np.arctan2(d['positions'][:,1],d['positions'][:,0]);rest=np.lexsort((angle,layers));rest=rest[~np.isin(rest,heroes)];order=np.r_[heroes,rest];assert np.array_equal(np.sort(order),np.arange(n))
- angles=np.unwrap(-np.pi/2-angle[order]);q=np.empty((NFRAMES,7));theta=np.zeros(NFRAMES);placed=np.zeros(NFRAMES,np.int32);picked=np.zeros(NFRAMES,np.int32);carry=np.full(NFRAMES,-1,np.int32);carried=np.repeat(np.eye(4)[None],NFRAMES,axis=0);target_matrices=[];hero_plans=[]
+ angles=np.zeros(n);q=np.empty((NFRAMES,7));theta=np.zeros(NFRAMES);placed=np.zeros(NFRAMES,np.int32);picked=np.zeros(NFRAMES,np.int32);carry=np.full(NFRAMES,-1,np.int32);carried=np.repeat(np.eye(4)[None],NFRAMES,axis=0);target_matrices=[];hero_plans=[]
  zero_error=max(np.max(np.abs(m-np.array(model.model['zero_frames'][k]))) for k,m in model.frames(np.zeros(7)).items());assert zero_error<3e-6
  home=model.forward(HOME)@TOOL;home[:3,3]=home[:3,3]*SCALE+BASE
  for h,i in enumerate(heroes):

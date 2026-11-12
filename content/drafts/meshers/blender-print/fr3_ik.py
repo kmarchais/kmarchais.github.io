@@ -22,8 +22,8 @@ def solve(model,target,orientation,previous=HOME):
  best=None
  for seed in seeds:
   seed=np.clip(seed,model.limits[:,0]+1e-7,model.limits[:,1]-1e-7)
-  result=least_squares(lambda q:np.r_[residual(q),.002*(q-previous)],seed,bounds=model.limits.T,xtol=1e-10,ftol=1e-10,gtol=1e-10,max_nfev=180)
-  r=residual(result.x);score=np.linalg.norm(np.r_[r,.002*(result.x-previous)])
+  result=least_squares(lambda q:np.r_[residual(q),.0005*(q-previous)],seed,bounds=model.limits.T,xtol=1e-10,ftol=1e-10,gtol=1e-10,max_nfev=180)
+  r=residual(result.x);score=np.linalg.norm(np.r_[r,.0005*(result.x-previous)])
   if best is None or score<best[0]:best=(score,result.x,r)
   if np.linalg.norm(r[:3])<1e-5 and np.linalg.norm(r[3:])<2e-4:break
  return best[1],float(np.linalg.norm(best[2][:3])),float(np.linalg.norm(best[2][3:])/.2)

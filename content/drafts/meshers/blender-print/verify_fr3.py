@@ -34,6 +34,7 @@ def main():
                 mesh.corner_normals.foreach_get("vector", normals.ravel())
                 assert np.isfinite(normals).all()
             assert np.array_equal(np.sort(t["order"]), np.arange(n))
+            assert not np.any(t["theta"]), "The stock tray must stay fixed"
             flat = stock["flat"]
             assert np.all(np.isclose(flat[:, :, 2], 0, atol=1e-8).sum(1) == 3)
             assert np.all(flat[:, :, 2].max(1) > 0)
@@ -74,11 +75,19 @@ def main():
                 "All initial source cells are stable and within the overview",
                 cells=n,
             )
+        stock_obj = bpy.data.objects["All 10832 original source cells on stable faces"]
+        fixed_stock_matrix = np.array(stock_obj.matrix_world).copy()
+        fixed_stock_vertices = np.array([v.co[:] for v in stock_obj.data.vertices])
         with job.part("posed-scene") as part:
             for f in range(432):
                 director.update(f + 1)
                 scene.frame_set(f + 1)
                 assert scene["source_inventory_total"] == n
+                bpy.context.view_layer.update()
+                np.testing.assert_array_equal(np.array(stock_obj.matrix_world), fixed_stock_matrix)
+                current_stock_vertices = np.empty(fixed_stock_vertices.size, np.float32)
+                stock_obj.data.vertices.foreach_get("co", current_stock_vertices)
+                np.testing.assert_array_equal(current_stock_vertices.reshape(-1, 3), fixed_stock_vertices)
                 assert np.all(t["q"][f] >= model.limits[:, 0] - 1e-9) and np.all(
                     t["q"][f] <= model.limits[:, 1] + 1e-9
                 )
@@ -217,6 +226,11 @@ def main():
                 scene.frame_set(frame)
                 bpy.context.view_layer.update()
                 assert scene["source_inventory_total"] == n
+                bpy.context.view_layer.update()
+                np.testing.assert_array_equal(np.array(stock_obj.matrix_world), fixed_stock_matrix)
+                current_stock_vertices = np.empty(fixed_stock_vertices.size, np.float32)
+                stock_obj.data.vertices.foreach_get("co", current_stock_vertices)
+                np.testing.assert_array_equal(current_stock_vertices.reshape(-1, 3), fixed_stock_vertices)
                 if 433 <= frame <= 624:
                     obj = bpy.data.objects["Closed smooth TPMS morph"]
                     assert not obj.hide_render
@@ -250,6 +264,8 @@ def main():
                 )
             receipt = {
                 "source_cells": n,
+                "stationary_stock_world_transforms": True,
+                "stationary_stock_vertices": True,
                 "stock_inner_radius": stock_inner,
                 "fixed_column_outer_radius": column_reach,
                 "stock_top_z": stock_top,
@@ -265,7 +281,7 @@ def main():
                 "table_top_z": 0.03,
                 "collisions": collisions,
                 "seconds": time.monotonic() - started,
-                "scope": "Vertex clearance against table/build pedestal and conservative full-mesh clearance from the rotating stock ring; not a certified industrial robot collision plan.",
+                "scope": "Vertex clearance against table/build pedestal and conservative full-mesh clearance from the stationary stock rows; not a certified industrial robot collision plan.",
             }
             (run / "fr3-scene-verified.json").write_text(
                 json.dumps(receipt, indent=2) + "\n"

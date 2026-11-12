@@ -35,12 +35,12 @@ def volume(name,xyz,faces,mat,ranks=None,keep_prefix=False):
 def build(run,preview=False,samples=32):
  bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False);scene=bpy.context.scene;scene.render.engine='CYCLES';prefs=bpy.context.preferences.addons['cycles'].preferences;prefs.compute_device_type='METAL';devices=prefs.get_devices_for_type('METAL')
  for device in devices:device.use=device.type=='METAL'
- assert prefs.has_active_device();scene.cycles.device='GPU';scene.cycles.samples=samples;scene.cycles.use_denoising=True;scene.cycles.max_bounces=6;scene.cycles.adaptive_threshold=.07;scene.render.threads_mode='FIXED';scene.render.threads=2;scene.render.resolution_x=1080;scene.render.resolution_y=1350;scene.render.resolution_percentage=50 if preview else 100;scene.render.image_settings.file_format='PNG';scene.render.image_settings.color_mode='RGB';scene.render.fps=FPS;scene.frame_start=1;scene.frame_end=936;scene.view_settings.view_transform='AgX';scene.view_settings.look='AgX - Medium High Contrast';scene.world.use_nodes=True;scene.world.node_tree.nodes['Background'].inputs[0].default_value=(.09,.13,.16,1);scene.world.node_tree.nodes['Background'].inputs[1].default_value=.35
+ assert prefs.has_active_device();scene.cycles.device='GPU';scene.cycles.samples=samples;scene.cycles.use_denoising=True;scene.cycles.seed=17;scene.cycles.use_animated_seed=False;scene.cycles.max_bounces=6;scene.cycles.adaptive_threshold=.07;scene.render.threads_mode='FIXED';scene.render.threads=2;scene.render.resolution_x=1080;scene.render.resolution_y=1350;scene.render.resolution_percentage=50 if preview else 100;scene.render.image_settings.file_format='PNG';scene.render.image_settings.color_mode='RGB';scene.render.fps=FPS;scene.frame_start=1;scene.frame_end=936;scene.view_settings.view_transform='AgX';scene.view_settings.look='AgX - Medium High Contrast';scene.world.use_nodes=True;scene.world.node_tree.nodes['Background'].inputs[0].default_value=(.09,.13,.16,1);scene.world.node_tree.nodes['Background'].inputs[1].default_value=.35
  alloy=material('Satin anodized aluminium',(.12,.15,.18),.75,.34);dark=material('Graphite fixtures',(.025,.035,.045),.4,.4);traymat=material('Indexed tray',(.025,.055,.065),.4,.48);poly=material('Teal ceramic cells',(.055,.27,.19),.02,.4);gold=material('Fine pickup adapter',(.55,.35,.13),.75,.28);seam=poly.copy();seam.name='Actual cells with visible mesh edges';nodes=seam.node_tree.nodes;links=seam.node_tree.links;wire=nodes.new('ShaderNodeWireframe');wire.use_pixel_size=True;wire.inputs['Size'].default_value=.65;color=nodes.new('ShaderNodeMixRGB');color.inputs[1].default_value=(.055,.27,.19,1);color.inputs[2].default_value=(.012,.03,.026,1);links.new(wire.outputs[0],color.inputs[0]);links.new(color.outputs[0],nodes.get('Principled BSDF').inputs['Base Color'])
  cylinder('Ground',(0,0,-.82),200,.08,material('Studio backdrop',(.013,.025,.032),.03,.55));cylinder('Grounded workcell base',(0,0,-.72),.70,.12,dark)
  for x in [-.43,.43]:
   for y in [-.43,.43]:cylinder('Supported workcell leg',(x,y,-.38),.045,.64,alloy)
- cylinder('Stationary support deck',(0,0,-.06),1.01,.10,alloy);carousel=ring('Indexed annular staging tray',.355,.99,-.01,.03,traymat);ring('Tray bright outer rim',.985,1.,-.013,.027,alloy);cylinder('Fixed central island',(0,0,.01),.355,.04,dark)
+ cylinder('Stationary support deck',(0,0,-.06),1.28,.10,alloy);carousel=ring('Indexed annular staging tray',.355,1.25,-.01,.03,traymat);ring('Tray bright outer rim',1.245,1.26,-.013,.027,alloy);cylinder('Fixed central island',(0,0,.01),.355,.04,dark)
  t=np.load(run/'trajectory.npz');stock=np.load(run/'all-tetrahedra-stock.npz');order=t['order'];n=len(order);rank=np.empty(n,np.int32);rank[order]=np.arange(n)
  xyz=stock['flat']+stock['positions'][:,None,:];faces=np.tile(FACES,(n,1))+np.repeat(np.arange(n)*4,4)[:,None];local=stock['local'];det=np.linalg.det(local[:,1:]-local[:,:1]);faces[np.repeat(det<0,4)]=faces[np.repeat(det<0,4),::-1]
  loose,loose_count=volume('All 10832 original source cells on stable faces',xyz,faces,poly,rank);loose.location.z=.03;loose.parent=carousel
@@ -63,7 +63,7 @@ def build(run,preview=False,samples=32):
   nonlocal last_held,last_morph
   f=max(0,min(431,frame-1));seconds=(frame-1)/24;frames=model.frames(t['q'][f],opening=.0105)
   for obj,link in robot:obj.matrix_world=Matrix(root@frames[link])
-  tool.matrix_world=Matrix(root@model.forward(t['q'][f],opening=.0105));carousel.rotation_euler.z=t['theta'][f];loose_count.inputs[3].default_value=int(t['picked'][f]);count.inputs[3].default_value=int(t['placed'][f]);i=int(t['carry'][f]);held.hide_render=i<0;held.hide_viewport=i<0
+  tool.matrix_world=Matrix(root@model.forward(t['q'][f],opening=.0105));carousel.rotation_euler.z=0.;loose_count.inputs[3].default_value=int(t['picked'][f]);count.inputs[3].default_value=int(t['placed'][f]);i=int(t['carry'][f]);held.hide_render=i<0;held.hide_viewport=i<0
   if i>=0:
    if i!=last_held:held.data.vertices.foreach_set('co',local[i].reshape(-1));held.data.update();last_held=i
    held.matrix_world=Matrix(t['carried'][f])
@@ -78,14 +78,14 @@ def build(run,preview=False,samples=32):
     if old.users==0:bpy.data.meshes.remove(old)
     last_morph=file
    morph.rotation_euler.z=2*np.pi*smooth((frame-433)/191)
-  center=t['center'];wide_target=np.array([0,0,.38]);wide_offset=np.array([1.7,-2.7,3.5]);target=wide_target;offset=wide_offset;zoom=2.8
+  center=t['center'];wide_target=np.array([0,0,.38]);wide_offset=np.array([1.7,-2.7,3.5]);target=wide_target;offset=wide_offset;zoom=3.6
   if seconds>=2:
    h=min(2,int((seconds-2)/3));u=(seconds-2)%3
    if seconds<11:
     # A wide first transfer establishes the professional arm; subsequent cuts show actual parts.
     if h==0:target=np.array([0,-.22,.30]);offset=np.array([1.7,-2.7,2.5]);zoom=1.65
     else:
-     pick_id=int(order[h]);p=np.array([0,-np.linalg.norm(stock['positions'][pick_id,:2]),.045]);mix=smooth((u-1.1)/.95);target=p*(1-mix)+center*mix;target[2]+=.035;offset=np.array([1.5,-2.,1.55]);zoom=.22 if u<1.1 else .22+.10*smooth((u-1.1)/.9)
+     pick_id=int(order[h]);p=stock['positions'][pick_id].copy();p[2]=.045;mix=smooth((u-1.1)/.95);target=p*(1-mix)+center*mix;target[2]+=.035;offset=np.array([1.5,-2.,1.55]);zoom=.22 if u<1.1 else .22+.10*smooth((u-1.1)/.9)
      if i>=0:target=t['carried'][f,:3,3]+np.array([0,0,.035])
    elif seconds<16:
     target=center+np.array([0,0,.07]);offset=np.array([1.5,-2.4,1.8]);zoom=.65

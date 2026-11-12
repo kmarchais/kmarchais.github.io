@@ -51,3 +51,42 @@ def pack_ring(flat,outer=1.,inner=.36,padding=.0007):
     overlap=np.minimum(a[:,2:],b[:,2:])-np.maximum(a[:,:2],b[:,:2])
     assert not np.any(np.all(overlap>1e-10,axis=1))
     return positions,rectangles
+
+
+def pack_concentric(flat, outer=1.22, inner=.37, padding=.00065, pickup_ids=()):
+    """Pack stable cells in fixed concentric rows with six clear radial aisles."""
+    from scipy.spatial import cKDTree
+    center=flat[:,:,:2].mean(1)
+    radii=np.linalg.norm(flat[:,:,:2]-center[:,None,:],axis=2).max(1)
+    order=np.argsort(-radii,kind='stable');positions=np.zeros((len(flat),3));ring_ids=np.empty(len(flat),int)
+    cursor=0;outside=outer;row=0
+    while cursor<len(order):
+        height=2*radii[order[cursor]]+padding
+        radius=outside-height/2
+        assert radius-height/2>=inner, 'All original cells must fit without rescaling'
+        for sector in range(6):
+            start=sector*np.pi/3+.025;end=(sector+1)*np.pi/3-.025
+            ids=[];widths=[];used=0.
+            while cursor<len(order):
+                i=order[cursor];width=2*np.arcsin((radii[i]+padding/2)/radius)
+                if used+width>end-start:break
+                ids.append(i);widths.append(width);used+=width;cursor+=1
+            if not ids:continue
+            gap=(end-start-used)/(len(ids)+1);angle=start+gap
+            for i,width in zip(ids,widths):
+                a=angle+width/2
+                positions[i,:2]=radius*np.array([np.cos(a),np.sin(a)])-center[i]
+                ring_ids[i]=row;angle+=width+gap
+        outside-=height;row+=1
+    assert len(pickup_ids) in (0,3)
+    for i,x in zip(pickup_ids,[-.06,0.,.06]):
+        positions[i,:2]=[x,-.43]-center[i]
+    slots=positions[:,:2]+center
+    pairs=cKDTree(slots).query_pairs(2*radii.max()+padding,output_type='ndarray')
+    gaps=np.linalg.norm(slots[pairs[:,0]]-slots[pairs[:,1]],axis=1)-radii[pairs[:,0]]-radii[pairs[:,1]]
+    assert gaps.min()>0
+    xy=flat[:,:,:2]+positions[:,None,:2]
+    assert np.linalg.norm(xy,axis=2).max()<=outer+1e-8
+    assert np.linalg.norm(slots,axis=1).min()-radii.max()>inner-.02
+    rectangles=np.column_stack([xy.min(1),xy.max(1)])
+    return positions,rectangles

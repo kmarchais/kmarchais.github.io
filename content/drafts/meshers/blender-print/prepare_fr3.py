@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 from scipy.spatial.transform import Rotation
 from pxr import Usd,UsdGeom,UsdPhysics,UsdShade
-from stable_stock import rest_on_faces,pack_ring
+from stable_stock import rest_on_faces,pack_concentric
 sys.path.insert(0,str(Path.home()/'bin'))
 from pueue_progress import Job
 
@@ -67,9 +67,10 @@ def main():
     source=np.load(a.source);points=source['points'];tets=source['tets']
    assert len(tets)==10832;scale=.18
    local,rotation,flat,face,stable=rest_on_faces(points,tets,scale)
-   result=pack_ring(flat,outer=.95,inner=.36);assert result is not None
+   flat=flat.astype(np.float32)
+   result=pack_concentric(flat,pickup_ids=(187,723,378));assert result is not None
    positions,rectangles=result;np.savez_compressed(a.run/'all-tetrahedra-stock.npz',points=points,tets=tets,local=local.astype(np.float32),rotation=rotation,flat=flat.astype(np.float32),positions=positions,face=face,rectangles=rectangles)
-   checks={'cells':len(tets),'all_have_three_ground_contacts':True,'all_centers_of_mass_supported':bool(stable.all()),'no_staging_overlaps':True,'outer_radius':.95,'inner_radius':.36,'display_scale':scale,'display_shrink':.965,'robot_meshes':len(meshes),'robot_vertices':sum(len(arrays[f'm{i}_points']) for i in range(len(meshes)))}
+   checks={'cells':len(tets),'all_have_three_ground_contacts':True,'all_centers_of_mass_supported':bool(stable.all()),'no_staging_overlaps':True,'outer_radius':1.22,'inner_radius':.36,'display_scale':scale,'display_shrink':.965,'robot_meshes':len(meshes),'robot_vertices':sum(len(arrays[f'm{i}_points']) for i in range(len(meshes)))}
    (a.run/'preparation-verified.json').write_text(json.dumps(checks,indent=2)+'\n');part.update(1,'Every source cell rests on a stable face',cells=len(tets))
   job.result('fr3-and-stock',cells=len(tets),meshes=len(meshes))
 if __name__=='__main__':main()

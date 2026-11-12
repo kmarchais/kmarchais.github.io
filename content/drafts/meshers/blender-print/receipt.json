@@ -1,9 +1,9 @@
 {
-  "finisher_sha256": "d89f040a0ca0d873e068ef60f4fd3033c8bea9a87ab78b7809c6a43b003b2d3f",
+  "finisher_sha256": "7d9e9768733a2c24a1b39fb92b7c1661c728f81ebc306f6567a66f2e600f1923",
   "artifact": "content/drafts/meshers/assets/meshers-gyroid-robot-assembly.mp4",
-  "video_sha256": "ae77d912c53ee0767e1d3b51edc128525aaf93a7458ec3eb89826578c535790e",
-  "video_bytes": 13938439,
-  "cover_sha256": "ad3dda94bb2623ccce86132bf7e9cc44546f5ec79cf539bc8daa56ae646e1503",
+  "video_sha256": "f085fa40bbb4756cd13c4871abd8360bae52f5d9f46548a09c1c78d709282eaf",
+  "video_bytes": 9233882,
+  "cover_sha256": "1fda708e8e62936752552f79b43c4e881e02ff1cf064470630ae46a00b9d107b",
   "probe": {
     "programs": [],
     "stream_groups": [],
@@ -19,7 +19,7 @@
     ],
     "format": {
       "duration": "39.000000",
-      "size": "13938439"
+      "size": "9233882"
     }
   },
   "full_decode": "passed",
@@ -45,30 +45,7 @@
     810,
     900
   ],
-  "assistant_visual_review": {
-    "status": "passed",
-    "reviewed_at": "2026-11-12T02:51:18.194418+00:00",
-    "contact": "20 encoded phase frames",
-    "full_resolution_frames": [
-      144,
-      410,
-      720,
-      810
-    ],
-    "checks": [
-      "Professional mounted FR3",
-      "Stable complete initial stock",
-      "Attached carried source cell",
-      "Smooth capped solids",
-      "Legible measured plots and boundary caveat",
-      "Visible actual Tet4 edges"
-    ],
-    "raw_render_frames": [
-      240,
-      480,
-      528
-    ]
-  },
+  "assistant_visual_review": "passed:20 encoded phase controls including fixed opening, pickups, assembly, morphs and measured plots",
   "source_mesh_sha256": "f29e7295440d9760a522be0fbbcf7fdf8b4398e930e9257b075968a889577b39",
   "benchmark_sha256": "7db5d221b0d5b4845f31fb3f15f14704e0dd1b541428813f0e1df73bba0165e3",
   "native_cells": 10832,
@@ -2089,10 +2066,10 @@
     ],
     "all_cells_initially_on_stable_faces": true,
     "samples": 32,
-    "seconds": 3112.6349018339533
+    "seconds": 3050.803143665951
   },
-  "scene_audit_sha256": "3c106a75cc71f32f527319e97553d5851910edb0bc592f0f7537e2aba28ee85c",
-  "trajectory_audit_sha256": "bb8044fee7c8cb40511e27140230270b205315bd41545405f0972c5fe77e2b53",
+  "scene_audit_sha256": "1decb855e0f826f6e8397346a3f05042c1864ab1896901a322b18d67bfa79309",
+  "trajectory_audit_sha256": "2f4457248102fa35b8700e51a5143f3d2dee32079b06c7b6fbb2907179318f83",
   "asset": {
     "repository": "nvidia/isaacsim-assets",
     "revision": "a0d9dfbac5163a7005442ae4fe8f954ff6780093",
@@ -2240,165 +2217,36 @@
     ]
   },
   "scope": "Robot assembly and TPMS morphs are illustrations; both coarse comparison meshes miss the strict boundary target. No FEA or reference promotion.",
-  "portable_source_audit_sha256": "8ef58e25ad47185f0b8f4d6e87c86b6c6c5cb24cf60ca844e7465142404c8a86",
-  "asset_normals_audit_sha256": "ea60f546c05723a3c8e8b163bc4865f5bb15b85f9e42e4b2553784a636e948f7",
-  "render_configuration": {
-    "inputs": {
-      "fr3-model.json": "0ecd8413f700411f0e26e1ba6b4bf810bae136b45fd9e14d70766588985f4ecb",
-      "fr3-meshes.npz": "71d3c3949da2620d5c2966727ed7033cecad591e5221fabb1805c3df051eea80",
-      "all-tetrahedra-stock.npz": "37852308934295b3f3ab9cb53cd64d72a277c9ae939fbb3b84684668ce36e583",
-      "geometry/index.json": "81a8509a086f350ecbe624fb284328c4378b9b7cb3b1a0a30493c46280c0085b"
-    },
-    "kinematics_sha256": "b265d270425c36a493a15210006035e88355801a3c50dab08c88b2da4c65cf9b",
-    "shading_sha256": "f3ff92265b7a04fbf9da41840ac1f4ef191e55c15a7ed251dd486690fdfba355",
-    "source_sha256": "e963fca06511264ceaec126a929c546871d108723e393ab452798cd5bbb9cf5d",
-    "trajectory_sha256": "b0828193c984e73c1dfea2b2fd42b84cf062fa622e914df5fabc6a0526636bcd",
-    "samples": 32,
-    "preview": false
-  },
-  "scene_audit_summary": {
-    "source_cells": 10832,
-    "all_initial_cells_stable": true,
-    "all_initial_cells_in_camera": true,
-    "all_joint_limits_pass": true,
-    "all_robot_corner_normals_finite": true,
-    "minimum_robot_z": 0.03,
-    "collisions": []
-  },
-  "portable_source_audit": {
-    "passed": true,
-    "arrays_compared": {
-      "fr3-meshes.npz": 44,
-      "all-tetrahedra-stock.npz": 8
-    },
-    "all_staging_arrays_bit_exact": true,
-    "robot_geometry_bit_exact": true,
-    "normal_conversion": "Two authored zero vectors remain zero instead of six NaNs; actual saved Blender normals are finite and bit-identical",
-    "source": "public/meshers/gyroid-meshers.json and adjacent binary"
-  },
-  "normals_audit": {
-    "passed": true,
-    "rows": [
-      {
-        "link": "/fr3/fr3_link0",
-        "source_nonfinite_values": 0,
-        "corner_normals": 189510,
-        "saved_normals_finite": true,
-        "finite_source_produces_same_saved_normals": true,
-        "max_difference": 0.0
-      },
-      {
-        "link": "/fr3/fr3_link1",
-        "source_nonfinite_values": 0,
-        "corner_normals": 24084,
-        "saved_normals_finite": true,
-        "finite_source_produces_same_saved_normals": true,
-        "max_difference": 0.0
-      },
-      {
-        "link": "/fr3/fr3_link2",
-        "source_nonfinite_values": 0,
-        "corner_normals": 24084,
-        "saved_normals_finite": true,
-        "finite_source_produces_same_saved_normals": true,
-        "max_difference": 0.0
-      },
-      {
-        "link": "/fr3/fr3_link3",
-        "source_nonfinite_values": 0,
-        "corner_normals": 64698,
-        "saved_normals_finite": true,
-        "finite_source_produces_same_saved_normals": true,
-        "max_difference": 0.0
-      },
-      {
-        "link": "/fr3/fr3_link4",
-        "source_nonfinite_values": 0,
-        "corner_normals": 64698,
-        "saved_normals_finite": true,
-        "finite_source_produces_same_saved_normals": true,
-        "max_difference": 0.0
-      },
-      {
-        "link": "/fr3/fr3_link5",
-        "source_nonfinite_values": 3,
-        "corner_normals": 81435,
-        "saved_normals_finite": true,
-        "finite_source_produces_same_saved_normals": true,
-        "max_difference": 0.0
-      },
-      {
-        "link": "/fr3/fr3_link6",
-        "source_nonfinite_values": 3,
-        "corner_normals": 134511,
-        "saved_normals_finite": true,
-        "finite_source_produces_same_saved_normals": true,
-        "max_difference": 0.0
-      },
-      {
-        "link": "/fr3/fr3_link7",
-        "source_nonfinite_values": 0,
-        "corner_normals": 113874,
-        "saved_normals_finite": true,
-        "finite_source_produces_same_saved_normals": true,
-        "max_difference": 0.0
-      },
-      {
-        "link": "/fr3/fr3_hand",
-        "source_nonfinite_values": 0,
-        "corner_normals": 21234,
-        "saved_normals_finite": true,
-        "finite_source_produces_same_saved_normals": true,
-        "max_difference": 0.0
-      },
-      {
-        "link": "/fr3/fr3_leftfinger",
-        "source_nonfinite_values": 0,
-        "corner_normals": 1872,
-        "saved_normals_finite": true,
-        "finite_source_produces_same_saved_normals": true,
-        "max_difference": 0.0
-      },
-      {
-        "link": "/fr3/fr3_rightfinger",
-        "source_nonfinite_values": 0,
-        "corner_normals": 1872,
-        "saved_normals_finite": true,
-        "finite_source_produces_same_saved_normals": true,
-        "max_difference": 0.0
-      }
-    ],
-    "scene_not_saved": true
-  },
-  "trajectory_audit": {
-    "base_mount_yaw_degrees": -90,
-    "nonbase_world_pose_error": 5.551115123125783e-16,
-    "frames": 432,
+  "stock_continuity": {
     "cells": 10832,
-    "heroes": [
-      187,
-      723,
-      378
-    ],
-    "inventory_conserved_every_frame": true,
-    "native_order_permutation": true,
-    "zero_pose_error": 2.028159260536455e-07,
-    "max_position_error": 2.9932069022910154e-05,
-    "max_orientation_error": 0.00015585135721098132,
-    "failed_frames": [],
-    "max_joint_step": 0.35937662317492847,
-    "base": [
-      -0.18,
-      0.0,
-      0.03
-    ],
-    "scale": 1.3,
-    "center": [
-      0.16,
-      -0.17,
-      0.24
-    ],
-    "tool_offset": 0.055,
-    "all_initial_cells_face_down": true
-  }
+    "stock_stationary_all_432_frames": true,
+    "all_cells_start_on_faces": true,
+    "layout": "Six stationary sectors with concentric rows and three fixed front pickup positions",
+    "stock_sha256": "02b739305adfcdd937cfc8df7becbc064b6ad8b5b3af272dcc426249c970ba21",
+    "trajectory_sha256": "0ac503b1098a1678f5b88b8f051b847a74239a7d999f4e7b1e449f138b2cc174",
+    "known_prior_failure": "Old rotating tray moves untouched cells by 1.762259 scene units between neighboring frames",
+    "new_max_stock_world_displacement": 0
+  },
+  "static_opening_pixels": {
+    "threshold": "At most one 8-bit RGB level; geometry/world matrices are separately bit-exact",
+    "frames": {
+      "2": {
+        "max_channel_difference": 1,
+        "changed_pixels": 206,
+        "total_pixels": 1458000
+      },
+      "24": {
+        "max_channel_difference": 1,
+        "changed_pixels": 226,
+        "total_pixels": 1458000
+      },
+      "48": {
+        "max_channel_difference": 1,
+        "changed_pixels": 215,
+        "total_pixels": 1458000
+      }
+    }
+  },
+  "previous_receipt": "content/drafts/meshers/blender-print/receipt-rotating-stock-v9.json",
+  "editable_run": "/Users/kmarchais/dev/meshers/.local-work/blender-fr3-assembly-v10"
 }
